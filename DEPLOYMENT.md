@@ -8,7 +8,7 @@
 6. Configure Stripe webhook URL `https://DOMAIN/api/stripe/webhook` for the five implemented event families and copy its signing secret.
 7. Configure the verified email domain, SPF, DKIM and DMARC before setting `AWS_SES_FROM_EMAIL`.
 8. Configure S3-compatible media credentials or implement the provided `StorageProvider` using Supabase Storage.
-9. Vercel Cron calls `/api/cron/reservations`; Vercel sends `CRON_SECRET` as a Bearer token.
+9. Vercel Cron calls `/api/cron/reservations` daily at 03:00 UTC on the Hobby plan; Vercel sends `CRON_SECRET` as a Bearer token. Use a Pro plan or an external scheduler if reservation cleanup must run more frequently.
 10. Run the launch checklist. Promote to production only after legal and commerce blockers pass.
 
 ## Backups and recovery
