@@ -54,10 +54,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       })),
   );
+  // A build-time database hiccup must not fail the whole deployment; the
+  // sitemap then simply omits product URLs until the next revalidation.
   const [german, english] = await Promise.all([
     getProducts("de"),
     getProducts("en"),
-  ]);
+  ]).catch(() => [[], []]);
   const products = [
     ...german.map((product) => ({ locale: "de" as const, product })),
     ...english.map((product) => ({ locale: "en" as const, product })),

@@ -10,6 +10,7 @@ import { formatMoney } from "@/lib/commerce/money";
 import { db } from "@/lib/db/client";
 import { createGiftBoxAction } from "@/server/actions/admin";
 import { requireAdmin } from "@/server/policies/authorization";
+import Link from "next/link";
 
 export default async function GiftBoxesPage() {
   await requireAdmin("gift-boxes");
@@ -28,6 +29,7 @@ export default async function GiftBoxesPage() {
             capacity controls.
           </p>
         </div>
+        <Link className="button" href="/admin/gift-boxes/new">New gift box</Link>
       </div>
       <div className="admin-table-wrap">
         <table className="admin-table">
@@ -49,6 +51,7 @@ export default async function GiftBoxesPage() {
                 <td>
                   <strong>{b.nameEn}</strong>
                   <small>{b.nameDe}</small>
+                  <Link href={`/admin/gift-boxes/${b.id}`}>Edit</Link>
                 </td>
                 <td>{b.fixed ? "Fixed" : "Custom"}</td>
                 <td>{b.sizeName}</td>

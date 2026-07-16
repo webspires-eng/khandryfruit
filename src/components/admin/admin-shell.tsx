@@ -39,12 +39,19 @@ const nav: Record<
   orders: { label: "Orders", icon: PackageOpen },
   customers: { label: "Customers", icon: Users },
   wholesale: { label: "Wholesale", icon: Store },
+  "contact-enquiries": { label: "Contact enquiries", icon: MessageSquareText },
   "gift-boxes": { label: "Gift boxes", icon: Gift },
+  packaging: { label: "Packaging", icon: PackageOpen },
   coupons: { label: "Coupons", icon: TicketPercent },
   reviews: { label: "Reviews", icon: MessageSquareText },
   content: { label: "Content", icon: FileText },
+  blog: { label: "Blog", icon: FileText },
+  recipes: { label: "Recipes", icon: FileText },
+  faqs: { label: "FAQs", icon: MessageSquareText },
+  legal: { label: "Legal", icon: FileText },
   settings: { label: "Settings", icon: Settings },
   "audit-logs": { label: "Audit logs", icon: History },
+  "system-health": { label: "System health", icon: LayoutGrid },
 };
 
 export function AdminShell({

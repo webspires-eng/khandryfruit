@@ -1186,6 +1186,8 @@ export async function requestCustomerAnonymisationAction(formData: FormData) {
 export async function updateUserRoleAction(formData: FormData) {
   const session = await requireAdmin("settings");
   try {
+    if (String(session.user.role) !== "SUPER_ADMIN")
+      throw new Error("SUPER_ADMIN_REQUIRED");
     const userId = z.string().min(1).parse(formData.get("userId"));
     const role = z
       .enum([
@@ -1363,6 +1365,106 @@ export async function updateSettingAction(formData: FormData) {
     });
     revalidatePath("/admin/settings");
     return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function updateContactEnquiryAction(formData: FormData) {
+  const session = await requireAdmin("contact-enquiries");
+  try {
+    const input = z
+      .object({
+        enquiryId: z.string().min(1),
+        status: z.enum([
+          "NEW",
+          "IN_PROGRESS",
+          "WAITING_FOR_CUSTOMER",
+          "RESOLVED",
+          "SPAM",
+        ]),
+      })
+      .parse(values(formData));
+    const meta = await requestMeta();
+    const before = await db.contactEnquiry.findUniqueOrThrow({
+      where: { id: input.enquiryId },
+      select: { status: true, resolvedAt: true },
+    });
+    await db.$transaction(async (tx) => {
+      await tx.contactEnquiry.update({
+        where: { id: input.enquiryId },
+        data: {
+          status: input.status,
+          resolvedAt: input.status === "RESOLVED" ? new Date() : null,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "CONTACT_ENQUIRY_STATUS_CHANGED",
+          entityType: "ContactEnquiry",
+          entityId: input.enquiryId,
+          before: { status: before.status },
+          after: { status: input.status },
+          ...meta,
+        },
+      });
+    });
+    revalidatePath("/admin/contact-enquiries");
+    revalidatePath(`/admin/contact-enquiries/${input.enquiryId}`);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function upsertPackagingAction(formData: FormData) {
+  const session = await requireAdmin("packaging");
+  try {
+    const input = z
+      .object({
+        packagingId: z.string().optional().default(""),
+        nameDe: z.string().trim().min(2).max(160),
+        nameEn: z.string().trim().min(2).max(160),
+        descriptionDe: z.string().trim().max(2_000).optional().default(""),
+        descriptionEn: z.string().trim().max(2_000).optional().default(""),
+        priceCents: z.coerce.number().int().min(0).max(10_000_000),
+        sortOrder: z.coerce.number().int().min(0).max(10_000),
+      })
+      .parse(values(formData));
+    const active = formData.get("active") === "true";
+    const meta = await requestMeta();
+    const before = input.packagingId
+      ? await db.giftPackagingOption.findUnique({
+          where: { id: input.packagingId },
+        })
+      : null;
+    const saved = await db.$transaction(async (tx) => {
+      const option = input.packagingId
+        ? await tx.giftPackagingOption.update({
+            where: { id: input.packagingId },
+            data: { ...input, packagingId: undefined, active },
+          })
+        : await tx.giftPackagingOption.create({
+            data: { ...input, packagingId: undefined, active },
+          });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: before ? "PACKAGING_UPDATED" : "PACKAGING_CREATED",
+          entityType: "GiftPackagingOption",
+          entityId: option.id,
+          before: before
+            ? { priceCents: before.priceCents, active: before.active }
+            : undefined,
+          after: { priceCents: option.priceCents, active: option.active },
+          ...meta,
+        },
+      });
+      return option;
+    });
+    revalidatePath("/admin/packaging");
+    return { success: true as const, id: saved.id };
   } catch (error) {
     return actionError(error);
   }

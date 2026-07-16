@@ -22,8 +22,6 @@
     "db:studio": "prisma studio",
     "db:audit-localisation": "tsx scripts/audit-localisation.ts",
     "db:repair-localisation": "tsx scripts/audit-localisation.ts --apply",
-    "db:up": "docker compose up -d db",
-    "db:down": "docker compose down",
     "check": "npm run db:validate && npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {

@@ -14,9 +14,11 @@ describe("admin role permissions", () => {
     expect(canAccessAdmin("ORDER_MANAGER", "products")).toBe(false);
   });
 
-  it("reserves critical settings for super administrators", () => {
-    expect(canAccessAdmin("ADMIN", "settings")).toBe(false);
+  it("allows business settings but reserves health and audit data", () => {
+    expect(canAccessAdmin("ADMIN", "settings")).toBe(true);
+    expect(canAccessAdmin("ADMIN", "audit-logs")).toBe(false);
+    expect(canAccessAdmin("ADMIN", "system-health")).toBe(false);
     expect(canAccessAdmin("SUPER_ADMIN", "settings")).toBe(true);
-    expect(visibleAdminAreas("SUPER_ADMIN")).toHaveLength(13);
+    expect(visibleAdminAreas("SUPER_ADMIN")).toHaveLength(21);
   });
 });
