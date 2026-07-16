@@ -40,8 +40,10 @@ export default async function SystemHealthPage() {
       "COMMERCE_BLOCKER",
     ],
     [
-      "Object storage",
-      Boolean(env.AWS_S3_BUCKET && env.AWS_ACCESS_KEY_ID),
+      "Cloudflare R2 storage",
+      Boolean(
+        env.CLOUDFLARE_R2_BUCKET && env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+      ),
       "COMMERCE_BLOCKER",
     ],
     [

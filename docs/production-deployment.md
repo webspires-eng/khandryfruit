@@ -60,17 +60,17 @@ Test wholesale confirmation/admin notification, contact acknowledgement/admin no
 
 Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` to the project DSN. Configure `SENTRY_ORG`, `SENTRY_PROJECT` and the secret `SENTRY_AUTH_TOKEN` in protected CI for source-map upload. The SDK captures client, server, edge and router errors without default PII or session replay. Verify a deliberate test event in the production project before launch. Checkout, Stripe, email, background-job, contact, wholesale, gift-box, and reservation failures also use structured events. Logs redact secret-like keys and common credential formats.
 
-Verify CSP and security headers against the final domain, Stripe, S3 and analytics. Run `npm audit --omit=dev` and review every production finding. Do not run `npm audit fix --force` without full regression testing.
+Verify CSP and security headers against the final domain, Stripe, Cloudflare R2 and analytics. Run `npm audit --omit=dev` and review every production finding. Do not run `npm audit fix --force` without full regression testing.
 
 The strict nonce policy is initially emitted as `Content-Security-Policy-Report-Only`; the compatibility policy retains `unsafe-inline` temporarily. Security owner: production operator. Removal deadline: before commerce activation. Review sanitized `/api/csp-report` events on Preview, exercise authentication, search, cart, gift boxes, checkout/Stripe, consent-controlled analytics and Sentry, then set `CSP_ENFORCE_STRICT=1` on Preview. Promote that exact verified configuration only after hydration and integrations remain error-free.
 
-Uploads are presigned only to private `quarantine/` keys with a SHA-256 checksum. Finalisation downloads the object, checks magic bytes, decodes with bounded dimensions and pixel count, rejects SVG and non-images, calls the configured malware scanner, strips metadata by re-encoding to WebP, writes a random final key, and deletes quarantine content. Configure `MALWARE_SCAN_URL` and `MALWARE_SCAN_TOKEN`; scanner failure is fail-closed in production. The S3 bucket policy must deny anonymous/public writes and allow the runtime IAM principal only the required get, put, and delete operations for this bucket.
+Uploads are presigned only to private `quarantine/` keys with a SHA-256 checksum. Finalisation downloads the object, checks magic bytes, decodes with bounded dimensions and pixel count, rejects SVG and non-images, calls the configured malware scanner, strips metadata by re-encoding to WebP, writes a random final key, and deletes quarantine content. Configure `MALWARE_SCAN_URL` and `MALWARE_SCAN_TOKEN`; scanner failure is fail-closed in production. The Cloudflare R2 token must be restricted to the selected bucket with only object read/write permissions, public writes must remain disabled, and quarantine keys must remain private. See `docs/cloudflare-r2-setup.md`.
 
 ## Backups and disaster recovery
 
 - Confirm the Supabase plan’s backup retention and whether point-in-time recovery is enabled; do not assume either.
 - Assign a recovery owner and agree business-approved RPO and RTO values.
-- Enable S3 media versioning/retention and maintain an independent media export or replica.
+- Enable R2 media retention/versioning where supported and maintain an independent media export or replica.
 - Quarterly, restore database and media into an isolated project, apply migrations once, verify representative orders and gift boxes, rotate restored secrets, and destroy the isolated environment.
 
 Disaster checklist: declare incident, freeze writes, preserve logs, select a recovery point, restore database and media, apply migrations once, rotate secrets/webhooks, run smoke tests, reconcile Stripe events since the recovery point, reopen traffic gradually, and document the incident.

@@ -49,8 +49,10 @@ export default async function SettingsPage() {
     },
     { name: "Email", ok: Boolean(env.AWS_SES_FROM_EMAIL) },
     {
-      name: "Storage",
-      ok: Boolean(env.AWS_S3_BUCKET && env.AWS_ACCESS_KEY_ID),
+      name: "Cloudflare R2",
+      ok: Boolean(
+        env.CLOUDFLARE_R2_BUCKET && env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+      ),
     },
     { name: "Analytics", ok: Boolean(env.GOOGLE_ANALYTICS_ID) },
   ];

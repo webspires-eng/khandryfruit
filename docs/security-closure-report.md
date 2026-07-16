@@ -15,12 +15,12 @@ Status as of 2026-07-16: repository controls strengthened; external Preview veri
 
 ## External controls still required
 
-- Configure Upstash, malware scanner, private S3 bucket policy and narrowly scoped IAM permissions.
+- Configure Upstash, the malware scanner, a private Cloudflare R2 bucket and a bucket-restricted object read/write token.
 - Verify strict CSP and remove the compatibility `unsafe-inline` exception before commerce activation. Owner: production operator; deadline: commerce activation.
 - Apply the MFA migration, enrol privileged users, store recovery codes offline, and test recovery/session revocation. Better Auth encrypts recovery codes at rest; a policy requiring irreversible hashing would need a separately reviewed recovery implementation and remains an accepted design gap.
 - Create least-privilege Supabase runtime and migration roles and prove their grants. No credentials or grants were invented locally.
 - Supply isolated Preview E2E customer, wholesale, order-manager, content-editor, admin and super-admin identities. Current repository variables cover customer/admin only; the additional role fixtures and destructive cleanup must be completed with the Preview database owner.
-- Verify S3 scanning, CSP reports, login alerts and rate limits against real providers; run all gated Playwright tests on Vercel Preview.
+- Verify R2 upload scanning, CSP reports, login alerts and rate limits against real providers; run the gated Preview checks only when explicitly authorised by the user.
 
 ## Launch recommendation
 

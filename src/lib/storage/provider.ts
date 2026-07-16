@@ -34,10 +34,22 @@ export interface StorageProvider {
 }
 
 export class S3StorageProvider implements StorageProvider {
+  private readonly bucket =
+    env.CLOUDFLARE_R2_BUCKET || env.AWS_S3_BUCKET || "";
   private readonly client = new S3Client({
-    region: env.AWS_REGION,
-    endpoint: env.AWS_S3_ENDPOINT || undefined,
+    region: env.CLOUDFLARE_R2_ACCOUNT_ID ? "auto" : env.AWS_REGION,
+    endpoint: env.CLOUDFLARE_R2_ACCOUNT_ID
+      ? `https://${env.CLOUDFLARE_R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
+      : env.AWS_S3_ENDPOINT || undefined,
     forcePathStyle: Boolean(env.AWS_S3_ENDPOINT),
+    credentials:
+      env.CLOUDFLARE_R2_ACCESS_KEY_ID &&
+      env.CLOUDFLARE_R2_SECRET_ACCESS_KEY
+        ? {
+            accessKeyId: env.CLOUDFLARE_R2_ACCESS_KEY_ID,
+            secretAccessKey: env.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
+          }
+        : undefined,
   });
 
   async createUpload(input: {
@@ -46,7 +58,7 @@ export class S3StorageProvider implements StorageProvider {
     sizeBytes: number;
     checksumSha256Base64: string;
   }) {
-    if (!env.AWS_S3_BUCKET) throw new Error("STORAGE_NOT_CONFIGURED");
+    if (!this.bucket) throw new Error("STORAGE_NOT_CONFIGURED");
     if (
       !allowedTypes.has(input.mimeType) ||
       input.sizeBytes < 1 ||
@@ -56,7 +68,7 @@ export class S3StorageProvider implements StorageProvider {
       throw new Error("INVALID_UPLOAD");
     const key = `quarantine/${new Date().getUTCFullYear()}/${randomUUID()}`;
     const command = new PutObjectCommand({
-      Bucket: env.AWS_S3_BUCKET,
+      Bucket: this.bucket,
       Key: key,
       ContentType: "application/octet-stream",
       ContentLength: input.sizeBytes,
@@ -73,13 +85,13 @@ export class S3StorageProvider implements StorageProvider {
     quarantineKey: string;
     purpose: "products" | "gift-boxes" | "certificates" | "content";
   }) {
-    if (!env.AWS_S3_BUCKET) throw new Error("STORAGE_NOT_CONFIGURED");
+    if (!this.bucket) throw new Error("STORAGE_NOT_CONFIGURED");
     if (!/^quarantine\/\d{4}\/[0-9a-f-]{36}$/.test(input.quarantineKey))
       throw new Error("INVALID_QUARANTINE_KEY");
     try {
       const object = await this.client.send(
         new GetObjectCommand({
-          Bucket: env.AWS_S3_BUCKET,
+          Bucket: this.bucket,
           Key: input.quarantineKey,
         }),
       );
@@ -92,7 +104,7 @@ export class S3StorageProvider implements StorageProvider {
       const key = `${input.purpose}/${new Date().getUTCFullYear()}/${randomUUID()}.webp`;
       await this.client.send(
         new PutObjectCommand({
-          Bucket: env.AWS_S3_BUCKET,
+          Bucket: this.bucket,
           Key: key,
           Body: validated.bytes,
           ContentType: validated.contentType,
@@ -114,7 +126,7 @@ export class S3StorageProvider implements StorageProvider {
     } finally {
       await this.client.send(
         new DeleteObjectCommand({
-          Bucket: env.AWS_S3_BUCKET,
+          Bucket: this.bucket,
           Key: input.quarantineKey,
         }),
       );

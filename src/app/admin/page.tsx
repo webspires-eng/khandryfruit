@@ -2,14 +2,17 @@ import Link from "next/link";
 import type { Route } from "next";
 import {
   AlertTriangle,
+  Activity,
   ArrowUpRight,
   Boxes,
   CircleDollarSign,
   ClipboardList,
   PackageCheck,
+  Plus,
   Star,
   Store,
   Users,
+  Warehouse,
 } from "lucide-react";
 import { db } from "@/lib/db/client";
 import { formatMoney } from "@/lib/commerce/money";
@@ -130,6 +133,7 @@ export default async function AdminPage() {
     ["Publication blocked", blocked, AlertTriangle],
     ["Pending reviews", pendingReviews, Star],
   ] as const;
+  const priorityCount = pendingOrders + applications + lowStock.length + blocked;
   return (
     <div className="admin-page-v2">
       <div className="admin-page-heading">
@@ -141,11 +145,63 @@ export default async function AdminPage() {
             analytics are shown.
           </p>
         </div>
-        {canAccessAdmin(role, "products") && (
-          <Link className="button" href="/admin/products/new">
-            Add product
-          </Link>
-        )}
+      </div>
+      <section className="admin-command-panel">
+        <div className="admin-command-copy">
+          <p className="eyebrow">Operations centre</p>
+          <h2>Keep the store moving</h2>
+          <p>
+            Review orders, stock, publishing readiness and customer requests
+            from one workspace.
+          </p>
+          <div className="admin-command-state">
+            <Activity size={18} />
+            <span>
+              <strong>{priorityCount} items need attention</strong>
+              <small>Calculated from live operational records</small>
+            </span>
+          </div>
+        </div>
+        <div className="admin-quick-actions">
+          <p>Quick actions</p>
+          {canAccessAdmin(role, "products") && (
+            <Link href="/admin/products/new">
+              <Plus size={18} />
+              <span>
+                <strong>New product</strong>
+                <small>Create a catalogue draft</small>
+              </span>
+              <ArrowUpRight size={16} />
+            </Link>
+          )}
+          {canAccessAdmin(role, "orders") && (
+            <Link href="/admin/orders">
+              <ClipboardList size={18} />
+              <span>
+                <strong>Process orders</strong>
+                <small>{pendingOrders} pending payment checks</small>
+              </span>
+              <ArrowUpRight size={16} />
+            </Link>
+          )}
+          {canAccessAdmin(role, "inventory") && (
+            <Link href="/admin/inventory">
+              <Warehouse size={18} />
+              <span>
+                <strong>Update inventory</strong>
+                <small>{lowStock.length} low-stock variants</small>
+              </span>
+              <ArrowUpRight size={16} />
+            </Link>
+          )}
+        </div>
+      </section>
+      <div className="admin-section-title">
+        <div>
+          <p className="eyebrow">Live overview</p>
+          <h2>Store performance</h2>
+        </div>
+        <small>Database-backed totals only</small>
       </div>
       <div className="admin-metric-grid">
         {metrics.map(([label, value, Icon]) => (

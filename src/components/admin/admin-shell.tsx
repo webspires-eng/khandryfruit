@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Route } from "next";
 import {
   BarChart3,
+  Bell,
   ChevronRight,
   CircleUserRound,
   FileText,
@@ -15,6 +16,7 @@ import {
   PackageOpen,
   Search,
   Settings,
+  ShieldCheck,
   ShoppingBasket,
   Store,
   Tags,
@@ -54,6 +56,38 @@ const nav: Record<
   "system-health": { label: "System health", icon: LayoutGrid },
 };
 
+const navGroups: Array<{
+  label: string;
+  areas: AdminArea[];
+}> = [
+  {
+    label: "Operations",
+    areas: ["dashboard", "orders", "inventory"],
+  },
+  {
+    label: "Catalogue",
+    areas: [
+      "products",
+      "categories",
+      "gift-boxes",
+      "packaging",
+      "coupons",
+    ],
+  },
+  {
+    label: "Customers",
+    areas: ["customers", "wholesale", "contact-enquiries", "reviews"],
+  },
+  {
+    label: "Publishing",
+    areas: ["content", "blog", "recipes", "faqs", "legal"],
+  },
+  {
+    label: "Workspace",
+    areas: ["settings", "audit-logs", "system-health"],
+  },
+];
+
 export function AdminShell({
   children,
   areas,
@@ -92,28 +126,47 @@ export function AdminShell({
           </button>
         </div>
         <nav aria-label="Administration">
-          {areas.map((area) => {
-            const Icon = nav[area].icon;
-            const href = area === "dashboard" ? "/admin" : `/admin/${area}`;
-            const active =
-              pathname === href ||
-              (href !== "/admin" && pathname.startsWith(`${href}/`));
+          {navGroups.map((group) => {
+            const visible = group.areas.filter((area) => areas.includes(area));
+            if (!visible.length) return null;
             return (
-              <Link
-                key={area}
-                href={href as Route}
-                className={active ? "active" : ""}
-                onClick={() => setOpen(false)}
-              >
-                <Icon size={18} />
-                <span>{nav[area].label}</span>
-              </Link>
+              <section className="admin-nav-group" key={group.label}>
+                <p>{group.label}</p>
+                {visible.map((area) => {
+                  const Icon = nav[area].icon;
+                  const href =
+                    area === "dashboard" ? "/admin" : `/admin/${area}`;
+                  const active =
+                    pathname === href ||
+                    (href !== "/admin" && pathname.startsWith(`${href}/`));
+                  return (
+                    <Link
+                      key={area}
+                      href={href as Route}
+                      className={active ? "active" : ""}
+                      onClick={() => setOpen(false)}
+                    >
+                      <Icon size={18} />
+                      <span>{nav[area].label}</span>
+                    </Link>
+                  );
+                })}
+              </section>
             );
           })}
         </nav>
-        <Link className="admin-store-link" href="/de">
-          <LayoutGrid size={17} /> View storefront
-        </Link>
+        <div className="admin-sidebar-footer">
+          <div className="admin-secure-state">
+            <ShieldCheck size={18} />
+            <span>
+              <strong>Secure workspace</strong>
+              <small>Protected admin session</small>
+            </span>
+          </div>
+          <Link className="admin-store-link" href="/de">
+            <LayoutGrid size={17} /> View storefront
+          </Link>
+        </div>
       </aside>
       {open && (
         <button
@@ -149,6 +202,16 @@ export function AdminShell({
               ? "Production"
               : "Development"}
           </span>
+          {areas.includes("system-health") && (
+            <Link
+              href="/admin/system-health"
+              className="admin-alert-button"
+              aria-label="Open system health"
+            >
+              <Bell size={19} />
+              <span />
+            </Link>
+          )}
           <details className="admin-user-menu">
             <summary>
               <CircleUserRound size={20} />

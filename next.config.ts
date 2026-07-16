@@ -4,6 +4,16 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+const r2PublicHostname = (() => {
+  const publicUrl = process.env.NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL;
+  if (!publicUrl) return null;
+  try {
+    return new URL(publicUrl).hostname;
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
@@ -18,6 +28,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "*.amazonaws.com" },
+      { protocol: "https", hostname: "*.r2.dev" },
+      ...(r2PublicHostname
+        ? [{ protocol: "https" as const, hostname: r2PublicHostname }]
+        : []),
     ],
     formats: ["image/avif", "image/webp"],
   },
