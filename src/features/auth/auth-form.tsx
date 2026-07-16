@@ -20,6 +20,12 @@ export function AuthForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
+  const redirectAfterAuth = async () => {
+    const session = await authClient.getSession();
+    const role = (session.data?.user as { role?: string } | undefined)?.role;
+    router.push(role === "SUPER_ADMIN" ? "/admin" : `/${locale}/account`);
+    router.refresh();
+  };
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
@@ -38,8 +44,7 @@ export function AuthForm({
         setPending(false);
         return;
       }
-      router.push(`/${locale}/account`);
-      router.refresh();
+      await redirectAfterAuth();
       return;
     }
     const identifier = String(data.get("identifier"));
@@ -71,8 +76,7 @@ export function AuthForm({
       setPending(false);
       return;
     }
-    router.push(`/${locale}/account`);
-    router.refresh();
+    await redirectAfterAuth();
   };
   return (
     <form className="auth-form" onSubmit={submit}>
