@@ -28,8 +28,8 @@ if ($poolerWithoutPassword -notmatch '^postgresql://([^@]+)@(.+):5432/(.+)$') {
 $databaseUser = $Matches[1]
 $databaseHost = $Matches[2]
 $databaseName = $Matches[3]
-$directUrl = "postgresql://${databaseUser}:${encodedPassword}@${databaseHost}:5432/${databaseName}?sslmode=require"
-$databaseUrl = "postgresql://${databaseUser}:${encodedPassword}@${databaseHost}:6543/${databaseName}?sslmode=require"
+$directUrl = "postgresql://${databaseUser}:${encodedPassword}@${databaseHost}:5432/${databaseName}?sslmode=require&uselibpqcompat=true"
+$databaseUrl = "postgresql://${databaseUser}:${encodedPassword}@${databaseHost}:6543/${databaseName}?sslmode=require&uselibpqcompat=true"
 $encodedPassword = $null
 
 $siteUrl = Read-Host "Production site URL [https://khandryfruit.vercel.app]"
@@ -45,12 +45,12 @@ function New-RandomSecret {
 }
 
 function Set-VercelSecret([string]$Name, [string]$Value) {
-  $Value | npx --yes vercel@latest env add $Name production --force --sensitive | Out-Host
+  $Value | npx.cmd --yes vercel@latest env add $Name production --force --sensitive | Out-Host
   if ($LASTEXITCODE -ne 0) { throw "Failed to configure $Name" }
 }
 
 function Set-VercelPublic([string]$Name, [string]$Value) {
-  $Value | npx --yes vercel@latest env add $Name production --force --no-sensitive | Out-Host
+  $Value | npx.cmd --yes vercel@latest env add $Name production --force --no-sensitive | Out-Host
   if ($LASTEXITCODE -ne 0) { throw "Failed to configure $Name" }
 }
 
