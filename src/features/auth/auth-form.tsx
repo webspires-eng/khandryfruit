@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "@/config/site";
 import { authClient, signIn, signUp } from "@/lib/auth/client";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export function AuthForm({
   locale,
@@ -121,10 +122,11 @@ export function AuthForm({
             required
           />
           <label htmlFor="password">{de ? "Passwort" : "Password"}</label>
-          <input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
+            showLabel={de ? "Passwort anzeigen" : "Show password"}
+            hideLabel={de ? "Passwort ausblenden" : "Hide password"}
             autoComplete={
               mode === "sign-up" ? "new-password" : "current-password"
             }

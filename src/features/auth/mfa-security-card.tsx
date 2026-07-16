@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { AppLocale } from "@/config/site";
 import { authClient } from "@/lib/auth/client";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type Setup = { totpURI: string; backupCodes: string[] };
 
@@ -78,9 +79,10 @@ export function MfaSecurityCard({
           <label htmlFor="mfa-password">
             {de ? "Aktuelles Passwort" : "Current password"}
           </label>
-          <input
+          <PasswordInput
             id="mfa-password"
-            type="password"
+            showLabel={de ? "Passwort anzeigen" : "Show password"}
+            hideLabel={de ? "Passwort ausblenden" : "Hide password"}
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
