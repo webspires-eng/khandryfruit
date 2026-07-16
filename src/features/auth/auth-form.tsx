@@ -41,16 +41,21 @@ export function AuthForm({
       router.refresh();
       return;
     }
-    const email = String(data.get("email"));
+    const identifier = String(data.get("identifier"));
     const password = String(data.get("password"));
     const result =
       mode === "sign-up"
         ? await signUp.email({
             name: String(data.get("name")),
-            email,
+            email: identifier,
             password,
           })
-        : await signIn.email({ email, password });
+        : identifier.includes("@")
+          ? await signIn.email({ email: identifier, password })
+          : await authClient.signIn.username({
+              username: identifier,
+              password,
+            });
     if (result.error) {
       setError(errors("authenticationFailed"));
       setPending(false);
@@ -101,12 +106,18 @@ export function AuthForm({
       )}
       {!needsTwoFactor && (
         <>
-          <label htmlFor="email">E-Mail</label>
+          <label htmlFor="identifier">
+            {mode === "sign-in"
+              ? de
+                ? "E-Mail oder Benutzername"
+                : "Email or username"
+              : "E-Mail"}
+          </label>
           <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
+            id="identifier"
+            name="identifier"
+            type={mode === "sign-up" ? "email" : "text"}
+            autoComplete={mode === "sign-up" ? "email" : "username"}
             required
           />
           <label htmlFor="password">{de ? "Passwort" : "Password"}</label>

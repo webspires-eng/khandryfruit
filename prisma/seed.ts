@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { username } from "better-auth/plugins";
 import { placeholderCopy } from "../src/lib/i18n/content";
 
 const connectionString = process.env.DATABASE_URL;
@@ -21,6 +22,7 @@ const auth = betterAuth({
     "development-only-seed-secret-at-least-32-chars",
   database: prismaAdapter(db, { provider: "postgresql" }),
   emailAndPassword: { enabled: true, minPasswordLength: 12 },
+  plugins: [username({ minUsernameLength: 3, maxUsernameLength: 30 })],
 });
 
 const products = [
@@ -116,7 +118,12 @@ async function seedUsers() {
     });
   await db.user.update({
     where: { email: adminEmail },
-    data: { role: "SUPER_ADMIN", emailVerified: true },
+    data: {
+      role: "SUPER_ADMIN",
+      emailVerified: true,
+      username: "admin",
+      displayUsername: "admin",
+    },
   });
   if (!(await db.user.findUnique({ where: { email: customerEmail } })))
     await auth.api.signUpEmail({
@@ -130,7 +137,7 @@ async function seedUsers() {
     where: { email: customerEmail },
     data: { role: "CUSTOMER", emailVerified: true },
   });
-  console.info(`Development admin: ${adminEmail}`);
+  console.info(`Development admin: admin or ${adminEmail}`);
   console.info(`Development customer: ${customerEmail}`);
   console.info(
     "Passwords come from SEED_*_PASSWORD and must never be used outside local development.",

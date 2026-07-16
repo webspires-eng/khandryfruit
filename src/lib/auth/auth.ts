@@ -2,7 +2,7 @@ import "server-only";
 
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { twoFactor } from "better-auth/plugins";
+import { twoFactor, username } from "better-auth/plugins";
 
 import { db } from "@/lib/db/client";
 import { getEmailProvider } from "@/lib/email/provider";
@@ -95,6 +95,7 @@ export const auth = betterAuth({
     max: 30,
   },
   plugins: [
+    username({ minUsernameLength: 3, maxUsernameLength: 30 }),
     twoFactor({
       issuer: "Khan Dry Fruit",
       twoFactorCookieMaxAge: 60 * 10,
