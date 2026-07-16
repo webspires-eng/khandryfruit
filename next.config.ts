@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   experimental: {
     authInterrupts: true,
+    serverActions: {
+      bodySizeLimit: "9mb",
+    },
   },
   images: {
     remotePatterns: [

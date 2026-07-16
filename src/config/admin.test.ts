@@ -19,6 +19,6 @@ describe("admin role permissions", () => {
     expect(canAccessAdmin("ADMIN", "audit-logs")).toBe(false);
     expect(canAccessAdmin("ADMIN", "system-health")).toBe(false);
     expect(canAccessAdmin("SUPER_ADMIN", "settings")).toBe(true);
-    expect(visibleAdminAreas("SUPER_ADMIN")).toHaveLength(20);
+    expect(visibleAdminAreas("SUPER_ADMIN")).toHaveLength(21);
   });
 });

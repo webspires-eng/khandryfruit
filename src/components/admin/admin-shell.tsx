@@ -11,6 +11,7 @@ import {
   Gift,
   History,
   LayoutGrid,
+  Images,
   Menu,
   MessageSquareText,
   PackageOpen,
@@ -52,6 +53,7 @@ const nav: Record<
   faqs: { label: "FAQs", icon: MessageSquareText },
   legal: { label: "Legal", icon: FileText },
   settings: { label: "Settings", icon: Settings },
+  media: { label: "Media library", icon: Images },
   "audit-logs": { label: "Audit logs", icon: History },
   "system-health": { label: "System health", icon: LayoutGrid },
 };
@@ -84,7 +86,7 @@ const navGroups: Array<{
   },
   {
     label: "Workspace",
-    areas: ["settings", "audit-logs", "system-health"],
+    areas: ["media", "settings", "audit-logs", "system-health"],
   },
 ];
 

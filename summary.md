@@ -77,3 +77,31 @@ Do not use Playwright and do not independently run checks or tests unless the us
 - Completed the official Wrangler OAuth login on this Mac.
 - Cloudflare access is stored in Wrangler's local credential store; no OAuth token or secret was written to the repository or shared in chat.
 - No Cloudflare bucket, DNS, CORS or production resource changes were made during authorization.
+
+## Cloudflare agent setup
+
+- Fetched and followed Cloudflare's official Codex setup instructions from `https://developers.cloudflare.com/agent-setup/prompt.md`.
+- Installed all 11 Cloudflare agent skills under `~/.agents/skills` using Cloudflare's published installer command.
+- Registered the `cloudflare`, `cloudflare-docs`, `cloudflare-bindings`, `cloudflare-builds` and `cloudflare-observability` MCP servers in Codex's global configuration.
+- Completed OAuth login for the primary `cloudflare` MCP server without placing credentials in the repository.
+- Codex must be restarted before the newly installed skills and MCP servers become available in a session.
+
+## Cloudflare R2 connection
+
+- Confirmed the authenticated Cloudflare account contains the `khandryfruit` R2 bucket.
+- Verified the locally configured R2 S3 credentials with a successful read-only object-list request.
+- No credential values were printed, copied into documentation or exposed in chat.
+- No R2 object was uploaded, changed or deleted during the connection check.
+
+## SUPER_ADMIN media library
+
+- Added a SUPER_ADMIN-only `/admin/media` workspace and Media Library entry in the grouped admin sidebar.
+- The page fetches image objects directly from the configured Cloudflare R2 bucket and merges them with existing `MediaAsset` database records.
+- Added live counts for R2 images, managed database assets and displayed storage usage.
+- Added single-image uploads for JPEG, PNG, WebP and AVIF files up to 8 MB, including malware scanning, bounded image validation, metadata stripping and WebP conversion before R2 storage.
+- New uploads create a `MediaAsset` record with bilingual alternative text and an audit-log entry.
+- Added permanent R2 deletion with browser confirmation, recent-session enforcement, audit logging and checks that block removal when the URL is referenced by a product, category, gift box, recipe or certificate.
+- Quarantine objects are excluded from the Media Library and cannot be deleted through its action.
+- Increased the authenticated Server Action request limit to 9 MB to accommodate the validated 8 MB image limit plus multipart overhead.
+- Production uploads remain fail-closed until the malware-scanning provider and public R2 media URL are configured.
+- No Playwright, test, lint, typecheck or build commands were run for this change, following the requested verification policy.

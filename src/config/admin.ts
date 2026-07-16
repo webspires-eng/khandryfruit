@@ -17,6 +17,7 @@ export const adminAreas = [
   "faqs",
   "legal",
   "settings",
+  "media",
   "audit-logs",
   "system-health",
 ] as const;
