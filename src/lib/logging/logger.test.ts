@@ -29,7 +29,10 @@ describe("structured logger redaction", () => {
       recoveryCode: "synthetic",
       customerAddress: "synthetic address",
     });
-    const output = JSON.parse(String(write.mock.calls[0]?.[0])) as Record<string, unknown>;
+    const output = JSON.parse(String(write.mock.calls[0]?.[0])) as Record<
+      string,
+      unknown
+    >;
     expect(output.correlationId).toBe("corr-123");
     expect(output.authorization).toBeUndefined();
     expect(output.recoveryCode).toBeUndefined();

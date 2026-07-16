@@ -4,19 +4,22 @@ import { describe, expect, it } from "vitest";
 import { validateAndReencodeImage } from "./image-validation";
 
 describe("image upload validation", () => {
-  it.each(["jpeg", "png", "webp"] as const)("decodes and re-encodes valid %s", async (format) => {
-    const source = await sharp({
-      create: { width: 8, height: 6, channels: 3, background: "#315b3b" },
-    })
-      .toFormat(format)
-      .toBuffer();
-    const result = await validateAndReencodeImage(source);
-    expect(result.contentType).toBe("image/webp");
-    expect(result.sourceFormat).toBe(format);
-    expect(result.width).toBe(8);
-    expect(result.height).toBe(6);
-    expect((await sharp(result.bytes).metadata()).format).toBe("webp");
-  });
+  it.each(["jpeg", "png", "webp"] as const)(
+    "decodes and re-encodes valid %s",
+    async (format) => {
+      const source = await sharp({
+        create: { width: 8, height: 6, channels: 3, background: "#315b3b" },
+      })
+        .toFormat(format)
+        .toBuffer();
+      const result = await validateAndReencodeImage(source);
+      expect(result.contentType).toBe("image/webp");
+      expect(result.sourceFormat).toBe(format);
+      expect(result.width).toBe(8);
+      expect(result.height).toBe(6);
+      expect((await sharp(result.bytes).metadata()).format).toBe("webp");
+    },
+  );
 
   it.each([
     Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'></svg>"),
@@ -28,7 +31,7 @@ describe("image upload validation", () => {
 
   it("rejects an excessive pixel count", async () => {
     const header = await sharp({
-      create: { width: 8_000, height: 5_001, channels: 1, background: "white" },
+      create: { width: 8_000, height: 5_001, channels: 3, background: "white" },
     })
       .png()
       .toBuffer();

@@ -1031,7 +1031,7 @@ export async function addTrackingAction(formData: FormData) {
 }
 
 export async function refundOrderAction(formData: FormData) {
-  const session = await requireAdmin("orders");
+  const session = await requireAdmin("orders", { recent: true });
   try {
     const orderId = z.string().min(1).parse(formData.get("orderId"));
     const amountCents = z.coerce
@@ -1184,7 +1184,7 @@ export async function requestCustomerAnonymisationAction(formData: FormData) {
 }
 
 export async function updateUserRoleAction(formData: FormData) {
-  const session = await requireAdmin("settings");
+  const session = await requireAdmin("settings", { recent: true });
   try {
     if (String(session.user.role) !== "SUPER_ADMIN")
       throw new Error("SUPER_ADMIN_REQUIRED");
@@ -1258,7 +1258,7 @@ export async function moderateReviewAction(formData: FormData) {
 }
 
 export async function updateLegalDocumentAction(formData: FormData) {
-  const session = await requireAdmin("content");
+  const session = await requireAdmin("content", { recent: true });
   try {
     const id = z.string().min(1).parse(formData.get("documentId"));
     const title = z
@@ -1329,7 +1329,7 @@ const editableSettings = new Set([
   "compliance.cookieConsentVersion",
 ]);
 export async function updateSettingAction(formData: FormData) {
-  const session = await requireAdmin("settings");
+  const session = await requireAdmin("settings", { recent: true });
   try {
     const key = z.string().parse(formData.get("key"));
     if (!editableSettings.has(key)) throw new Error("SETTING_NOT_EDITABLE");

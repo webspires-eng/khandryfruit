@@ -1,5 +1,3 @@
-import "server-only";
-
 import sharp from "sharp";
 
 const MAX_BYTES = 8_000_000;
@@ -17,7 +15,12 @@ export type ValidatedImage = {
 };
 
 function detectedFormat(bytes: Uint8Array): RasterFormat | null {
-  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff)
+  if (
+    bytes.length >= 3 &&
+    bytes[0] === 0xff &&
+    bytes[1] === 0xd8 &&
+    bytes[2] === 0xff
+  )
     return "jpeg";
   if (
     bytes.length >= 8 &&
@@ -40,13 +43,17 @@ function detectedFormat(bytes: Uint8Array): RasterFormat | null {
   if (
     bytes.length >= 12 &&
     Buffer.from(bytes.subarray(4, 8)).toString("ascii") === "ftyp" &&
-    ["avif", "avis"].includes(Buffer.from(bytes.subarray(8, 12)).toString("ascii"))
+    ["avif", "avis"].includes(
+      Buffer.from(bytes.subarray(8, 12)).toString("ascii"),
+    )
   )
     return "avif";
   return null;
 }
 
-export async function validateAndReencodeImage(input: Uint8Array): Promise<ValidatedImage> {
+export async function validateAndReencodeImage(
+  input: Uint8Array,
+): Promise<ValidatedImage> {
   if (input.byteLength === 0 || input.byteLength > MAX_BYTES)
     throw new Error("INVALID_IMAGE_SIZE");
   const sourceFormat = detectedFormat(input);

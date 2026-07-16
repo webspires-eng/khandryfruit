@@ -16,7 +16,9 @@ export function trustedOrigins(requestUrl?: string) {
       process.env.AUTH_URL,
       process.env.BETTER_AUTH_URL,
       process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
-      process.env.NODE_ENV !== "production" ? normalizedOrigin(requestUrl) : undefined,
+      process.env.NODE_ENV !== "production"
+        ? normalizedOrigin(requestUrl)
+        : undefined,
     ]
       .map((value) => normalizedOrigin(value))
       .filter((value): value is string => Boolean(value)),
@@ -32,7 +34,10 @@ export function hasTrustedOrigin(request: Request) {
 export function rejectUntrustedOrigin(request: Request) {
   if (hasTrustedOrigin(request)) return null;
   return Response.json(
-    { success: false, error: { code: "UNTRUSTED_ORIGIN", message: "Request rejected." } },
+    {
+      success: false,
+      error: { code: "UNTRUSTED_ORIGIN", message: "Request rejected." },
+    },
     { status: 403, headers: { "Cache-Control": "no-store" } },
   );
 }

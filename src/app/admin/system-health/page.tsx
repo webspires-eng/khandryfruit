@@ -26,15 +26,35 @@ export default async function SystemHealthPage() {
       ])
     : [null, null, null];
   const checks = [
-    ["Database connectivity", database],
-    ["Stripe configuration", Boolean(env.STRIPE_SECRET_KEY)],
-    ["Stripe webhook", Boolean(env.STRIPE_WEBHOOK_SECRET)],
-    ["Email provider", Boolean(env.AWS_SES_FROM_EMAIL)],
+    ["Database connectivity", database, "CRITICAL"],
+    [
+      "Stripe configuration",
+      Boolean(env.STRIPE_SECRET_KEY),
+      "COMMERCE_BLOCKER",
+    ],
+    ["Stripe webhook", Boolean(env.STRIPE_WEBHOOK_SECRET), "COMMERCE_BLOCKER"],
+    ["Email provider", Boolean(env.AWS_SES_FROM_EMAIL), "COMMERCE_BLOCKER"],
     [
       "ADMIN_EMAIL",
       Boolean(env.ADMIN_EMAIL && env.ADMIN_EMAIL !== "orders@example.com"),
+      "COMMERCE_BLOCKER",
     ],
-    ["Object storage", Boolean(env.AWS_S3_BUCKET && env.AWS_ACCESS_KEY_ID)],
+    [
+      "Object storage",
+      Boolean(env.AWS_S3_BUCKET && env.AWS_ACCESS_KEY_ID),
+      "COMMERCE_BLOCKER",
+    ],
+    [
+      "Distributed rate limiter",
+      Boolean(env.UPSTASH_REDIS_REST_URL),
+      "CRITICAL",
+    ],
+    [
+      "Sentry",
+      Boolean(env.SENTRY_DSN && env.NEXT_PUBLIC_SENTRY_DSN),
+      "WARNING",
+    ],
+    ["Analytics", Boolean(env.GOOGLE_ANALYTICS_ID), "OPTIONAL"],
   ] as const;
   return (
     <div className="admin-page-v2">
@@ -61,7 +81,9 @@ export default async function SystemHealthPage() {
           <div className="admin-list-row" key={check.key}>
             <span>
               <strong>{check.label}</strong>
-              <small>{check.detail}</small>
+              <small>
+                {check.severity} · {check.detail}
+              </small>
             </span>
             <span className="admin-status">
               {check.ready ? "Ready" : "Blocked"}
@@ -77,9 +99,12 @@ export default async function SystemHealthPage() {
         <header>
           <h2>Integrations</h2>
         </header>
-        {checks.map(([name, ok]) => (
+        {checks.map(([name, ok, severity]) => (
           <div className="admin-list-row" key={name}>
-            <strong>{name}</strong>
+            <span>
+              <strong>{name}</strong>
+              <small>{severity}</small>
+            </span>
             <span className="admin-status">
               {ok ? "Configured" : "Missing or invalid"}
             </span>

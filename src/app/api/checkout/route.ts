@@ -12,6 +12,7 @@ import { env } from "@/lib/env";
 import { logger } from "@/lib/logging/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { rejectUntrustedOrigin } from "@/lib/security/origin";
+import { trustedClientIp } from "@/lib/security/client-ip";
 
 const CHECKOUT_RATE_LIMIT = { limit: 10, windowMs: 10 * 60_000 };
 
@@ -21,11 +22,16 @@ export async function POST(request: Request) {
     const originRejection = rejectUntrustedOrigin(request);
     if (originRejection) return originRejection;
     const rate = await checkRateLimit(
-      `checkout:${request.headers.get("x-vercel-forwarded-for") ?? request.headers.get("x-forwarded-for") ?? "unknown"}`,
+      `checkout:${trustedClientIp(request.headers)}`,
       CHECKOUT_RATE_LIMIT,
     );
     if (!rate.allowed)
-      return fail("RATE_LIMITED", "Please wait before trying checkout again.", 429, rate.retryAfterSeconds);
+      return fail(
+        "RATE_LIMITED",
+        "Please wait before trying checkout again.",
+        429,
+        rate.retryAfterSeconds,
+      );
     if (
       !env.DATABASE_URL ||
       process.env.E2E_USE_DEVELOPMENT_CATALOGUE === "1" ||
@@ -316,13 +322,21 @@ async function releaseOrderReservations(orderId: string) {
     });
   });
 }
-function fail(code: string, message: string, status: number, retryAfterSeconds?: number) {
+function fail(
+  code: string,
+  message: string,
+  status: number,
+  retryAfterSeconds?: number,
+) {
   return NextResponse.json<ActionResult<never>>(
     { success: false, error: { code, message } },
     {
       status,
       headers: retryAfterSeconds
-        ? { "Retry-After": String(retryAfterSeconds), "Cache-Control": "no-store" }
+        ? {
+            "Retry-After": String(retryAfterSeconds),
+            "Cache-Control": "no-store",
+          }
         : undefined,
     },
   );

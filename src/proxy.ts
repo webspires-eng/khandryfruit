@@ -1,6 +1,5 @@
 import createMiddleware from "next-intl/middleware";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import type { AdminArea } from "@/config/admin";
 import { adminAreas, canAccessAdmin } from "@/config/admin";
@@ -70,8 +69,7 @@ async function routeRequest(request: NextRequest) {
   if (localized) {
     const url = request.nextUrl.clone();
     url.pathname = localized.path;
-    if (localized.action === "redirect")
-      return NextResponse.redirect(url, 308);
+    if (localized.action === "redirect") return NextResponse.redirect(url, 308);
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set(
       "x-next-intl-locale",
@@ -104,8 +102,14 @@ export default async function proxy(request: NextRequest) {
   }
   response.headers.set("Content-Security-Policy", policy.enforced);
   if (policy.reportOnly)
-    response.headers.set("Content-Security-Policy-Report-Only", policy.reportOnly);
-  response.headers.set("Cache-Control", response.headers.get("Cache-Control") ?? "private, no-store");
+    response.headers.set(
+      "Content-Security-Policy-Report-Only",
+      policy.reportOnly,
+    );
+  response.headers.set(
+    "Cache-Control",
+    response.headers.get("Cache-Control") ?? "private, no-store",
+  );
   return response;
 }
 

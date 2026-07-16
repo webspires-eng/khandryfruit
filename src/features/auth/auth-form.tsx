@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "@/config/site";
-import { signIn, signUp } from "@/lib/auth/client";
+import { authClient, signIn, signUp } from "@/lib/auth/client";
 
 export function AuthForm({
   locale,
@@ -18,11 +18,29 @@ export function AuthForm({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
     setError("");
     const data = new FormData(event.currentTarget);
+    if (needsTwoFactor) {
+      const code = String(data.get("twoFactorCode") ?? "").trim();
+      const result = code.includes("-")
+        ? await authClient.twoFactor.verifyBackupCode({
+            code,
+            trustDevice: false,
+          })
+        : await authClient.twoFactor.verifyTotp({ code, trustDevice: false });
+      if (result.error) {
+        setError(errors("authenticationFailed"));
+        setPending(false);
+        return;
+      }
+      router.push(`/${locale}/account`);
+      router.refresh();
+      return;
+    }
     const email = String(data.get("email"));
     const password = String(data.get("password"));
     const result =
@@ -38,47 +56,79 @@ export function AuthForm({
       setPending(false);
       return;
     }
+    if (
+      result.data &&
+      "twoFactorRedirect" in result.data &&
+      result.data.twoFactorRedirect
+    ) {
+      setNeedsTwoFactor(true);
+      setPending(false);
+      return;
+    }
     router.push(`/${locale}/account`);
     router.refresh();
   };
   return (
     <form className="auth-form" onSubmit={submit}>
-      {mode === "sign-up" && (
+      {needsTwoFactor ? (
         <>
-          <label htmlFor="name">{de ? "Name" : "Name"}</label>
+          <label htmlFor="twoFactorCode">
+            {de
+              ? "Authenticator- oder Wiederherstellungscode"
+              : "Authenticator or recovery code"}
+          </label>
           <input
-            id="name"
-            name="name"
-            autoComplete="name"
-            minLength={2}
+            id="twoFactorCode"
+            name="twoFactorCode"
+            inputMode="numeric"
+            autoComplete="one-time-code"
             required
           />
         </>
+      ) : (
+        mode === "sign-up" && (
+          <>
+            <label htmlFor="name">{de ? "Name" : "Name"}</label>
+            <input
+              id="name"
+              name="name"
+              autoComplete="name"
+              minLength={2}
+              required
+            />
+          </>
+        )
       )}
-      <label htmlFor="email">E-Mail</label>
-      <input
-        id="email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        required
-      />
-      <label htmlFor="password">{de ? "Passwort" : "Password"}</label>
-      <input
-        id="password"
-        name="password"
-        type="password"
-        autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
-        minLength={12}
-        required
-      />
-      <small>
-        {mode === "sign-up"
-          ? de
-            ? "Mindestens 12 Zeichen. Verwenden Sie ein einzigartiges Passwort."
-            : "At least 12 characters. Use a unique password."
-          : ""}
-      </small>
+      {!needsTwoFactor && (
+        <>
+          <label htmlFor="email">E-Mail</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+          />
+          <label htmlFor="password">{de ? "Passwort" : "Password"}</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete={
+              mode === "sign-up" ? "new-password" : "current-password"
+            }
+            minLength={12}
+            required
+          />
+          <small>
+            {mode === "sign-up"
+              ? de
+                ? "Mindestens 12 Zeichen. Verwenden Sie ein einzigartiges Passwort."
+                : "At least 12 characters. Use a unique password."
+              : ""}
+          </small>
+        </>
+      )}
       {error && (
         <div className="form-error" role="alert">
           {error}

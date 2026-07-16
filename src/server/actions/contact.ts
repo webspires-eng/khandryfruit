@@ -145,7 +145,10 @@ async function sendContactEmails(
     logger.error("contact_confirmation_email_failed", { correlationId });
   }
   // Never notify a placeholder inbox from production traffic.
-  if (env.NODE_ENV === "production" && env.ADMIN_EMAIL === "orders@example.com") {
+  if (
+    env.NODE_ENV === "production" &&
+    env.ADMIN_EMAIL === "orders@example.com"
+  ) {
     logger.warn("contact_admin_email_skipped_placeholder", { correlationId });
     return;
   }

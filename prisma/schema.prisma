@@ -122,6 +122,7 @@ model User {
   role                   String                 @default("CUSTOMER")
   locale                 Locale                 @default(de)
   disabled               Boolean                @default(false)
+  twoFactorEnabled       Boolean                @default(false)
   deletionRequestedAt    DateTime?
   marketingConsentAt     DateTime?
   marketingConsentSource String?
@@ -142,9 +143,24 @@ model User {
   giftBoxConfigurations  GiftBoxConfiguration[]
   auditLogs              AuditLog[]             @relation("AuditActor")
   statusChanges          OrderStatusHistory[]   @relation("StatusActor")
+  twoFactor              TwoFactor?
 
   @@index([role, disabled])
   @@map("user")
+}
+
+model TwoFactor {
+  id                      String    @id @default(cuid())
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(false)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+  userId                  String    @unique
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([secret])
+  @@map("twoFactor")
 }
 
 model Session {

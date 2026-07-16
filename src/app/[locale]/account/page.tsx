@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { env } from "@/lib/env";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/server/policies/authorization";
+import { MfaSecurityCard } from "@/features/auth/mfa-security-card";
 export const metadata = {
   title: "Account",
   robots: { index: false, follow: false },
@@ -109,6 +110,10 @@ export default async function Page({
         <p>{session.user.email}</p>
       </header>
       <div className="account-grid">
+        <MfaSecurityCard
+          locale={locale}
+          enabled={Boolean(session.user.twoFactorEnabled)}
+        />
         {[
           [
             de ? "Bestellungen" : "Orders",

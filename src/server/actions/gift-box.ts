@@ -24,7 +24,10 @@ import type { GiftBoxCartLine } from "@/types/gift-box";
 
 const RATE_LIMIT = { limit: 20, windowMs: 10 * 60_000 };
 
-function validationMessage(locale: AppLocale, error: GiftBoxValidationError): string {
+function validationMessage(
+  locale: AppLocale,
+  error: GiftBoxValidationError,
+): string {
   const keys: Record<GiftBoxValidationError["code"], string> = {
     TEMPLATE_UNAVAILABLE: "giftBoxBuilder.validation.generic",
     MIN_ITEMS: "giftBoxBuilder.validation.minItems",
@@ -62,7 +65,10 @@ export async function addCustomGiftBoxAction(
       );
 
     const session = await getSession();
-    const line = await createGiftBoxConfiguration(parsed.data, session?.user.id);
+    const line = await createGiftBoxConfiguration(
+      parsed.data,
+      session?.user.id,
+    );
     logger.info("gift_box_configured", {
       correlationId: meta.correlationId,
       configurationId: line.configurationId,

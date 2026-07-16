@@ -1,5 +1,3 @@
-import "server-only";
-
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
@@ -37,7 +35,10 @@ function inMemoryRateLimit(
     return {
       allowed: false,
       remaining: 0,
-      retryAfterSeconds: Math.max(1, Math.ceil((oldest + windowMs - now) / 1000)),
+      retryAfterSeconds: Math.max(
+        1,
+        Math.ceil((oldest + windowMs - now) / 1000),
+      ),
       providerAvailable: true,
     };
   }
@@ -89,7 +90,9 @@ export async function checkRateLimit(
     !process.env.UPSTASH_REDIS_REST_URL ||
     !process.env.UPSTASH_REDIS_REST_TOKEN
   ) {
-    logger.error("rate_limit_provider_unavailable", { reason: "not_configured" });
+    logger.error("rate_limit_provider_unavailable", {
+      reason: "not_configured",
+    });
     return {
       allowed: false,
       remaining: 0,
@@ -109,7 +112,9 @@ export async function checkRateLimit(
       providerAvailable: true,
     };
   } catch {
-    logger.error("rate_limit_provider_unavailable", { reason: "request_failed" });
+    logger.error("rate_limit_provider_unavailable", {
+      reason: "request_failed",
+    });
     return {
       allowed: false,
       remaining: 0,

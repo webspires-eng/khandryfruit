@@ -44,7 +44,10 @@ export async function submitWholesaleApplicationAction(
       return { success: true, data: { applicationId: "received" } };
     }
 
-    const rate = await checkRateLimit(`wholesale:${meta.ipAddress}`, RATE_LIMIT);
+    const rate = await checkRateLimit(
+      `wholesale:${meta.ipAddress}`,
+      RATE_LIMIT,
+    );
     if (!rate.allowed)
       return failure(
         "RATE_LIMITED",
@@ -143,7 +146,12 @@ export async function submitWholesaleApplicationAction(
       return created;
     });
 
-    await sendWholesaleEmails(locale, application.id, input, meta.correlationId);
+    await sendWholesaleEmails(
+      locale,
+      application.id,
+      input,
+      meta.correlationId,
+    );
 
     logger.info("wholesale_application_submitted", {
       correlationId: meta.correlationId,
@@ -184,7 +192,10 @@ async function sendWholesaleEmails(
     logger.error("wholesale_confirmation_email_failed", { correlationId });
   }
   // Never notify a placeholder inbox from production traffic.
-  if (env.NODE_ENV === "production" && env.ADMIN_EMAIL === "orders@example.com") {
+  if (
+    env.NODE_ENV === "production" &&
+    env.ADMIN_EMAIL === "orders@example.com"
+  ) {
     logger.warn("wholesale_admin_email_skipped_placeholder", { correlationId });
     return;
   }

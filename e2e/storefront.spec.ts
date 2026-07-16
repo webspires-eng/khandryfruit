@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 
-const allowWrites = process.env.E2E_ALLOW_WRITES === "1";
+const allowWrites =
+  process.env.E2E_WRITE_ENABLED === "true" ||
+  process.env.E2E_ALLOW_WRITES === "1";
 
 test("German homepage", async ({ page }) => {
   await page.goto("/de");
@@ -59,7 +61,10 @@ test("gift-box builder loads capacity-controlled data", async ({ page }) => {
 });
 
 test("composite gift box can be placed in cart", async ({ page }) => {
-  test.skip(!allowWrites, "Set E2E_ALLOW_WRITES=1 against isolated safe data");
+  test.skip(
+    !allowWrites,
+    "Set E2E_WRITE_ENABLED=true against isolated safe data",
+  );
   await page.goto("/en/gift-boxes/build-your-own");
   await page.locator(".option-card").first().click();
   const addButtons = page
@@ -81,7 +86,7 @@ test("composite gift box can be placed in cart", async ({ page }) => {
 test("wholesale submission is write-gated", async ({ page }) => {
   test.skip(
     !allowWrites,
-    "Set E2E_ALLOW_WRITES=1 with an isolated test identity",
+    "Set E2E_WRITE_ENABLED=true with an isolated test identity",
   );
   await page.goto("/en/wholesale");
   await expect(page.locator('form input[name="companyName"]')).toBeVisible();
@@ -90,7 +95,7 @@ test("wholesale submission is write-gated", async ({ page }) => {
 test("contact submission is write-gated", async ({ page }) => {
   test.skip(
     !allowWrites,
-    "Set E2E_ALLOW_WRITES=1 with an isolated test identity",
+    "Set E2E_WRITE_ENABLED=true with an isolated test identity",
   );
   await page.goto("/en/contact");
   await expect(page.locator('form textarea[name="message"]')).toBeVisible();

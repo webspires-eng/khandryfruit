@@ -12,7 +12,12 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/lib/env";
 import { validateAndReencodeImage } from "@/lib/storage/image-validation";
 
-const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+const allowedTypes = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/avif",
+]);
 const MAX_BYTES = 8_000_000;
 
 export interface StorageProvider {
@@ -73,7 +78,10 @@ export class S3StorageProvider implements StorageProvider {
       throw new Error("INVALID_QUARANTINE_KEY");
     try {
       const object = await this.client.send(
-        new GetObjectCommand({ Bucket: env.AWS_S3_BUCKET, Key: input.quarantineKey }),
+        new GetObjectCommand({
+          Bucket: env.AWS_S3_BUCKET,
+          Key: input.quarantineKey,
+        }),
       );
       if (!object.Body || (object.ContentLength ?? MAX_BYTES + 1) > MAX_BYTES)
         throw new Error("INVALID_UPLOAD");
@@ -105,7 +113,10 @@ export class S3StorageProvider implements StorageProvider {
       };
     } finally {
       await this.client.send(
-        new DeleteObjectCommand({ Bucket: env.AWS_S3_BUCKET, Key: input.quarantineKey }),
+        new DeleteObjectCommand({
+          Bucket: env.AWS_S3_BUCKET,
+          Key: input.quarantineKey,
+        }),
       );
     }
   }
@@ -113,7 +124,8 @@ export class S3StorageProvider implements StorageProvider {
 
 async function scanForMalware(bytes: Buffer) {
   if (!env.MALWARE_SCAN_URL || !env.MALWARE_SCAN_TOKEN) {
-    if (env.NODE_ENV === "production") throw new Error("MALWARE_SCANNER_NOT_CONFIGURED");
+    if (env.NODE_ENV === "production")
+      throw new Error("MALWARE_SCANNER_NOT_CONFIGURED");
     return;
   }
   const response = await fetch(env.MALWARE_SCAN_URL, {

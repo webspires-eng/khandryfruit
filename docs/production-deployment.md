@@ -12,6 +12,8 @@ Create separate Vercel Preview and Production values. Never copy live Stripe or 
 - `AUTH_URL` and `NEXT_PUBLIC_SITE_URL`: exact HTTPS deployment origin.
 - Configure all remaining variables from `.env.example`. Secrets must not use the `NEXT_PUBLIC_` prefix.
 
+Production abuse controls require `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. The application fails closed when the provider is unavailable; the in-memory implementation is development/test only. Monitor `rate_limit_provider_unavailable` without logging submitted credentials.
+
 Vercel install command: `npm ci`. Build command: `npm run build`. `postinstall` runs `prisma generate`. Do not run migrations or seeds in the build command or from serverless instances.
 
 ## Controlled database deployment
@@ -30,6 +32,8 @@ npm run db:status
 The production seed creates only roles, permissions, EUR currency, and an explicitly unconfirmed VAT setting. It creates no users, products, orders, applications, or sample content. The development seed refuses to run with `NODE_ENV=production`.
 
 Capture a Supabase backup and record migration status before deploying. Verify schema and application health before promoting traffic. Never launch two migration jobs concurrently.
+
+Use separate PostgreSQL roles. `DATABASE_URL` must use a pooled runtime role with only required table and sequence read-write privileges and no schema creation, extension management, ownership, or superuser rights. `DIRECT_URL` must use a separately stored migration role and must never be exposed to request handlers. Rotate each credential independently, update the matching protected environment, revoke the old password, and verify connectivity. Take a backup immediately before material migrations.
 
 ## Vercel and domain
 
@@ -57,6 +61,10 @@ Test wholesale confirmation/admin notification, contact acknowledgement/admin no
 Set `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` to the project DSN. Configure `SENTRY_ORG`, `SENTRY_PROJECT` and the secret `SENTRY_AUTH_TOKEN` in protected CI for source-map upload. The SDK captures client, server, edge and router errors without default PII or session replay. Verify a deliberate test event in the production project before launch. Checkout, Stripe, email, background-job, contact, wholesale, gift-box, and reservation failures also use structured events. Logs redact secret-like keys and common credential formats.
 
 Verify CSP and security headers against the final domain, Stripe, S3 and analytics. Run `npm audit --omit=dev` and review every production finding. Do not run `npm audit fix --force` without full regression testing.
+
+The strict nonce policy is initially emitted as `Content-Security-Policy-Report-Only`; the compatibility policy retains `unsafe-inline` temporarily. Security owner: production operator. Removal deadline: before commerce activation. Review sanitized `/api/csp-report` events on Preview, exercise authentication, search, cart, gift boxes, checkout/Stripe, consent-controlled analytics and Sentry, then set `CSP_ENFORCE_STRICT=1` on Preview. Promote that exact verified configuration only after hydration and integrations remain error-free.
+
+Uploads are presigned only to private `quarantine/` keys with a SHA-256 checksum. Finalisation downloads the object, checks magic bytes, decodes with bounded dimensions and pixel count, rejects SVG and non-images, calls the configured malware scanner, strips metadata by re-encoding to WebP, writes a random final key, and deletes quarantine content. Configure `MALWARE_SCAN_URL` and `MALWARE_SCAN_TOKEN`; scanner failure is fail-closed in production. The S3 bucket policy must deny anonymous/public writes and allow the runtime IAM principal only the required get, put, and delete operations for this bucket.
 
 ## Backups and disaster recovery
 

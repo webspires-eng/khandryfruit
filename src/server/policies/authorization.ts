@@ -24,10 +24,25 @@ export async function requireUser(locale = "de") {
   return session;
 }
 
-export async function requireAdmin(area: AdminArea = "dashboard") {
+export async function requireAdmin(
+  area: AdminArea = "dashboard",
+  options: { recent?: boolean } = {},
+) {
   const session = await getSession();
   if (!session) unauthorized();
   if (!canAccessAdmin(String(session.user.role), area)) forbidden();
+  const role = String(session.user.role);
+  if (
+    process.env.NODE_ENV === "production" &&
+    (role === "ADMIN" || role === "SUPER_ADMIN") &&
+    !session.user.twoFactorEnabled
+  )
+    forbidden();
+  if (
+    options.recent &&
+    Date.now() - new Date(session.session.createdAt).getTime() > 15 * 60_000
+  )
+    forbidden();
   return session;
 }
 

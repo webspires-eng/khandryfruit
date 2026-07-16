@@ -8,7 +8,12 @@ function write(
 ) {
   const safe = Object.fromEntries(
     Object.entries(fields)
-      .filter(([key]) => !/password|secret|token|credential|cookie|authorization|recovery|mfa|address/i.test(key))
+      .filter(
+        ([key]) =>
+          !/password|secret|token|credential|cookie|authorization|recovery|mfa|address/i.test(
+            key,
+          ),
+      )
       .map(([key, value]) => [
         key,
         typeof value === "string" && sensitiveValue.test(value)
