@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages, setRequestLocale } from "next-intl/server";
+import {
+  getMessages,
+  getTranslations,
+  setRequestLocale,
+} from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -51,10 +55,11 @@ export default async function LocaleLayout({
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
   const messages = await getMessages();
+  const t = await getTranslations({ locale, namespace: "common" });
   return (
     <NextIntlClientProvider messages={messages}>
       <a href="#main" className="skip-link">
-        {locale === "de" ? "Zum Inhalt springen" : "Skip to content"}
+        {t("skipToContent")}
       </a>
       <Header locale={locale} />
       <main id="main">{children}</main>

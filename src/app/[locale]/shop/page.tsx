@@ -4,6 +4,7 @@ import { ProductCard } from "@/components/storefront/product-card";
 import { isLocale } from "@/config/site";
 import { getProducts } from "@/server/repositories/catalogue";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 export const metadata: Metadata = { robots: { index: true, follow: true } };
 
@@ -16,38 +17,30 @@ export default async function ShopPage({
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
+  const t = await getTranslations({ locale, namespace: "shop" });
   const query = await searchParams;
   const category =
     typeof query.category === "string" ? query.category : undefined;
   const search = typeof query.q === "string" ? query.q : undefined;
   const products = await getProducts(locale, { category, query: search });
-  const de = locale === "de";
   return (
     <div className="page-shell container">
       <header className="page-hero">
-        <p className="eyebrow">
-          {de
-            ? "Aus Afghanistan · ausgewählt in Duisburg"
-            : "From Afghanistan · selected in Duisburg"}
-        </p>
-        <h1>{de ? "Trockenfrüchte entdecken" : "Explore dry fruits"}</h1>
-        <p>
-          {de
-            ? "Filtern Sie unsere Entwicklungsprodukte nach Sorte. Artikel werden erst nach vollständiger Lebensmittel- und Geschäftsfreigabe veröffentlicht."
-            : "Filter development products by variety. Items are only published after complete food and business approval."}
-        </p>
+        <p className="eyebrow">{t("eyebrow")}</p>
+        <h1>{t("title")}</h1>
+        <p>{t("description")}</p>
       </header>
       <div className="shop-toolbar">
         <span>
-          {products.length} {de ? "Ergebnisse" : "results"}
+          {products.length} {t("results")}
         </span>
         <button className="filter-button">
-          <SlidersHorizontal size={17} /> {de ? "Filter" : "Filters"}
+          <SlidersHorizontal size={17} /> {t("filters")}
         </button>
-        <select aria-label={de ? "Sortierung" : "Sort"}>
-          <option>{de ? "Empfohlen" : "Featured"}</option>
-          <option>{de ? "Preis aufsteigend" : "Price low to high"}</option>
-          <option>{de ? "Name A–Z" : "Name A–Z"}</option>
+        <select aria-label={t("sort")}>
+          <option>{t("featured")}</option>
+          <option>{t("priceAscending")}</option>
+          <option>{t("nameAscending")}</option>
         </select>
       </div>
       {products.length ? (
@@ -58,12 +51,8 @@ export default async function ShopPage({
         </div>
       ) : (
         <div className="empty-state">
-          <h2>{de ? "Keine Produkte gefunden" : "No products found"}</h2>
-          <p>
-            {de
-              ? "Entfernen Sie Filter oder versuchen Sie einen anderen Suchbegriff."
-              : "Clear filters or try another search term."}
-          </p>
+          <h2>{t("emptyTitle")}</h2>
+          <p>{t("emptyText")}</p>
         </div>
       )}
     </div>

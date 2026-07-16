@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ChevronRight, Heart, MessageCircle } from "lucide-react";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ProductPurchase } from "@/components/storefront/product-purchase";
 import { isLocale } from "@/config/site";
 import { Link } from "@/i18n/navigation";
@@ -20,7 +21,22 @@ export async function generateMetadata({
     description: product.shortDescription,
     robots:
       product.status === "DRAFT" ? { index: false, follow: false } : undefined,
-    alternates: { canonical: `/${locale}/product/${slug}` },
+    alternates: {
+      canonical: `/${locale}/product/${slug}`,
+      languages: Object.fromEntries(
+        Object.entries(product.alternateSlugs ?? {}).map(
+          ([alternateLocale, alternateSlug]) => [
+            alternateLocale,
+            `/${alternateLocale}/product/${alternateSlug}`,
+          ],
+        ),
+      ),
+    },
+    openGraph: {
+      title: product.name,
+      description: product.shortDescription,
+      locale: locale === "de" ? "de_DE" : "en_DE",
+    },
   };
 }
 
@@ -31,9 +47,13 @@ export default async function ProductPage({
 }) {
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
+  const t = await getTranslations({ locale, namespace: "product" });
+  const placeholders = await getTranslations({
+    locale,
+    namespace: "placeholders",
+  });
   const product = await getProductBySlug(locale, slug);
   if (!product) notFound();
-  const de = locale === "de";
   const jsonLd =
     product.status === "ACTIVE"
       ? {
@@ -58,16 +78,13 @@ export default async function ProductPage({
       : null;
   return (
     <div className="product-page container">
-      <nav
-        className="breadcrumbs"
-        aria-label={de ? "Brotkrümelnavigation" : "Breadcrumbs"}
-      >
+      <nav className="breadcrumbs" aria-label={t("breadcrumbs")}>
         <Link href="/" locale={locale}>
-          Home
+          {t("home")}
         </Link>
         <ChevronRight size={14} />
         <Link href="/shop" locale={locale}>
-          Shop
+          {t("shop")}
         </Link>
         <ChevronRight size={14} />
         <span>{product.name}</span>
@@ -87,15 +104,14 @@ export default async function ProductPage({
           <p className="product-lead">{product.shortDescription}</p>
           <div className="product-quick-actions">
             <button>
-              <Heart size={17} /> {de ? "Merken" : "Save"}
+              <Heart size={17} /> {t("save")}
             </button>
             <a
               href="https://wa.me/4917621809185"
               target="_blank"
               rel="noreferrer"
             >
-              <MessageCircle size={17} />{" "}
-              {de ? "Frage stellen" : "Ask a question"}
+              <MessageCircle size={17} /> {t("askQuestion")}
             </a>
           </div>
           <ProductPurchase product={product} locale={locale} />
@@ -103,54 +119,40 @@ export default async function ProductPage({
       </div>
       <div className="product-details">
         <section>
-          <p className="eyebrow">{de ? "Produkt" : "Product"}</p>
-          <h2>{de ? "Beschreibung & Herkunft" : "Description & origin"}</h2>
+          <p className="eyebrow">{t("product")}</p>
+          <h2>{t("descriptionOrigin")}</h2>
           <p>{product.description}</p>
           <dl>
             <div>
-              <dt>{de ? "Ursprungsland" : "Country of origin"}</dt>
+              <dt>{t("countryOfOrigin")}</dt>
               <dd>{product.originCountry}</dd>
             </div>
             <div>
-              <dt>{de ? "Region" : "Region"}</dt>
+              <dt>{t("region")}</dt>
               <dd>{product.originRegion}</dd>
             </div>
             <div>
-              <dt>
-                {de
-                  ? "Verantwortlicher Lebensmittelunternehmer"
-                  : "Responsible food business"}
-              </dt>
+              <dt>{t("responsibleBusiness")}</dt>
               <dd>
-                [
-                {de
-                  ? "ANGABE VOR VERÖFFENTLICHUNG ERFORDERLICH"
-                  : "REQUIRED BEFORE PUBLICATION"}
-                ]
+                {product.responsibleFoodBusiness || placeholders("business")}
               </dd>
             </div>
           </dl>
         </section>
         <section>
-          <p className="eyebrow">
-            {de ? "Lebensmittelangaben" : "Food information"}
-          </p>
-          <h2>{de ? "Zutaten & Allergene" : "Ingredients & allergens"}</h2>
-          <h3>{de ? "Zutaten" : "Ingredients"}</h3>
+          <p className="eyebrow">{t("foodInformation")}</p>
+          <h2>{t("ingredientsAllergens")}</h2>
+          <h3>{t("ingredients")}</h3>
           <p>{product.ingredients}</p>
-          <h3>{de ? "Allergene" : "Allergens"}</h3>
+          <h3>{t("allergens")}</h3>
           <p>{product.allergenStatement}</p>
-          <h3>{de ? "Lagerung" : "Storage"}</h3>
+          <h3>{t("storage")}</h3>
           <p>{product.storageInstructions}</p>
         </section>
         <section className="nutrition">
-          <p className="eyebrow">{de ? "Je 100 g" : "Per 100g"}</p>
-          <h2>{de ? "Nährwerte" : "Nutrition"}</h2>
-          <div className="warning-box">
-            {de
-              ? "[NÄHRWERTDATEN VOR VERÖFFENTLICHUNG ERFORDERLICH]"
-              : "[NUTRITION DATA REQUIRED BEFORE PUBLICATION]"}
-          </div>
+          <p className="eyebrow">{t("per100g")}</p>
+          <h2>{t("nutrition")}</h2>
+          <div className="warning-box">{placeholders("nutrition")}</div>
         </section>
       </div>
       {jsonLd && (

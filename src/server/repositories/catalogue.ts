@@ -1,8 +1,14 @@
 import "server-only";
 
+import { headers } from "next/headers";
 import type { AppLocale } from "@/config/site";
 import { db } from "@/lib/db/client";
 import { env } from "@/lib/env";
+import {
+  isCompleteProductTranslation,
+  placeholderCopy,
+  resolveLocaleRecord,
+} from "@/lib/i18n/content";
 import type { CatalogueProduct } from "@/types/commerce";
 
 const developmentProducts: CatalogueProduct[] = [
@@ -14,9 +20,9 @@ const developmentProducts: CatalogueProduct[] = [
       "Dunkle Rosinen aus Kabul mit weicher Textur und ausgewogenem Aroma.",
     description:
       "Ein Entwicklungsbeispiel auf Basis der bestätigten Herkunft Kabul. Produkt- und Lebensmitteldaten müssen vor Veröffentlichung geprüft werden.",
-    ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-    allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-    storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+    ingredients: placeholderCopy.de.ingredients,
+    allergenStatement: placeholderCopy.de.allergens,
+    storageInstructions: placeholderCopy.de.storage,
     originCountry: "Afghanistan",
     originRegion: "Kabul",
     image: "/images/product-black-raisins.jpg",
@@ -55,9 +61,9 @@ const developmentProducts: CatalogueProduct[] = [
       "Helle afghanische Rosinen aus Kabul, als Entwicklungsprodukt angelegt.",
     description:
       "Herkunftsbeispiel bestätigt; alle weiteren Angaben sind vor dem Verkauf zu vervollständigen.",
-    ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-    allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-    storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+    ingredients: placeholderCopy.de.ingredients,
+    allergenStatement: placeholderCopy.de.allergens,
+    storageInstructions: placeholderCopy.de.storage,
     originCountry: "Afghanistan",
     originRegion: "Kabul",
     image: "/images/product-green-raisins.jpg",
@@ -87,9 +93,9 @@ const developmentProducts: CatalogueProduct[] = [
       "Feigen aus Kandahar, für den Entwicklungskatalog angelegt.",
     description:
       "Die Region Kandahar ist bestätigt. Lebensmittel-, Preis- und Bilddaten benötigen die Kundenfreigabe.",
-    ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-    allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-    storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+    ingredients: placeholderCopy.de.ingredients,
+    allergenStatement: placeholderCopy.de.allergens,
+    storageInstructions: placeholderCopy.de.storage,
     originCountry: "Afghanistan",
     originRegion: "Kandahar",
     image: "/images/product-figs.jpg",
@@ -119,9 +125,9 @@ const developmentProducts: CatalogueProduct[] = [
       "Maulbeeren aus der Region Shamali, als Entwicklungsbeispiel.",
     description:
       "Die Herkunftsregion ist bestätigt; die übrigen Pflichtangaben sind noch nicht freigegeben.",
-    ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-    allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-    storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+    ingredients: placeholderCopy.de.ingredients,
+    allergenStatement: placeholderCopy.de.allergens,
+    storageInstructions: placeholderCopy.de.storage,
     originCountry: "Afghanistan",
     originRegion: "Shamali",
     image: "/images/product-mulberries.jpg",
@@ -151,9 +157,9 @@ const developmentProducts: CatalogueProduct[] = [
       "Getrocknete Pfirsiche aus Logar, als Entwicklungsbeispiel.",
     description:
       "Logar ist als Herkunft bestätigt; Pflichtdaten und Verkaufspreis müssen noch geprüft werden.",
-    ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-    allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-    storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+    ingredients: placeholderCopy.de.ingredients,
+    allergenStatement: placeholderCopy.de.allergens,
+    storageInstructions: placeholderCopy.de.storage,
     originCountry: "Afghanistan",
     originRegion: "Logar",
     image: "/images/product-peaches.jpg",
@@ -183,11 +189,11 @@ const developmentProducts: CatalogueProduct[] = [
       "Sorgfältig präsentierte Aprikosen als unvollständiges Entwicklungsprodukt.",
     description:
       "Dieses Produkt ist noch nicht für den Verkauf freigegeben; Herkunft und Lebensmitteldaten fehlen.",
-    ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-    allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-    storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+    ingredients: placeholderCopy.de.ingredients,
+    allergenStatement: placeholderCopy.de.allergens,
+    storageInstructions: placeholderCopy.de.storage,
     originCountry: "Afghanistan",
-    originRegion: "[REGION ERFORDERLICH]",
+    originRegion: placeholderCopy.de.productInformation,
     image: "/images/product-apricots.jpg",
     imageAlt: "Getrocknete Aprikosen",
     category: "Aprikosen",
@@ -213,46 +219,103 @@ function localiseDevelopment(
   product: CatalogueProduct,
   locale: AppLocale,
 ): CatalogueProduct {
-  if (locale === "de") return product;
-  const english: Record<string, [string, string, string]> = {
-    "dev-black-raisins": [
-      "Black Raisins",
-      "Dark raisins from Kabul with a soft texture and balanced character.",
-      "Raisins",
-    ],
-    "dev-green-raisins": [
-      "Green Raisins",
-      "Light Afghan raisins from Kabul, created as a development product.",
-      "Raisins",
-    ],
-    "dev-figs": [
-      "Afghan Figs",
-      "Figs from Kandahar, created for the development catalogue.",
-      "Figs",
-    ],
-    "dev-mulberries": [
-      "Dried Mulberries",
-      "Mulberries from the Shamali region, presented as a development example.",
-      "Mulberries",
-    ],
-    "dev-peaches": [
-      "Dried Peaches",
-      "Dried peaches from Logar, presented as a development example.",
-      "Peaches",
-    ],
-    "dev-apricots": [
-      "Dried Apricots",
-      "Carefully presented apricots as an incomplete development product.",
-      "Apricots",
-    ],
+  const english: Record<
+    string,
+    {
+      name: string;
+      slug: string;
+      shortDescription: string;
+      category: string;
+      categorySlug: string;
+      description: string;
+    }
+  > = {
+    "dev-black-raisins": {
+      name: "Black Raisins",
+      slug: "black-raisins",
+      shortDescription:
+        "Dark raisins from Kabul with a soft texture and balanced character.",
+      category: "Raisins",
+      categorySlug: "raisins",
+      description:
+        "The Kabul sourcing example is confirmed. Further product information requires approval.",
+    },
+    "dev-green-raisins": {
+      name: "Green Raisins",
+      slug: "green-raisins",
+      shortDescription:
+        "Light Afghan raisins from Kabul, created as a development product.",
+      category: "Raisins",
+      categorySlug: "raisins",
+      description:
+        "The Kabul sourcing example is confirmed. Further product information requires approval.",
+    },
+    "dev-figs": {
+      name: "Afghan Figs",
+      slug: "afghan-figs",
+      shortDescription:
+        "Figs from Kandahar, created for the development catalogue.",
+      category: "Figs",
+      categorySlug: "figs",
+      description:
+        "The Kandahar sourcing example is confirmed. Further product information requires approval.",
+    },
+    "dev-mulberries": {
+      name: "Dried Mulberries",
+      slug: "dried-mulberries",
+      shortDescription:
+        "Mulberries from the Shamali region, presented as a development example.",
+      category: "Mulberries",
+      categorySlug: "mulberries",
+      description:
+        "The Shamali sourcing example is confirmed. Further product information requires approval.",
+    },
+    "dev-peaches": {
+      name: "Dried Peaches",
+      slug: "dried-peaches",
+      shortDescription:
+        "Dried peaches from Logar, presented as a development example.",
+      category: "Peaches",
+      categorySlug: "peaches",
+      description:
+        "The Logar sourcing example is confirmed. Further product information requires approval.",
+    },
+    "dev-apricots": {
+      name: "Dried Apricots",
+      slug: "dried-apricots",
+      shortDescription:
+        "Carefully presented apricots as an incomplete development product.",
+      category: "Apricots",
+      categorySlug: "apricots",
+      description: placeholderCopy.en.productInformation,
+    },
   };
   const values = english[product.id];
+  if (locale === "de")
+    return {
+      ...product,
+      alternateSlugs: {
+        de: product.slug,
+        ...(values ? { en: values.slug } : {}),
+      },
+    };
   return values
     ? {
         ...product,
-        name: values[0],
-        shortDescription: values[1],
-        category: values[2],
+        name: values.name,
+        slug: values.slug,
+        shortDescription: values.shortDescription,
+        description: values.description,
+        ingredients: placeholderCopy.en.ingredients,
+        allergenStatement: placeholderCopy.en.allergens,
+        storageInstructions: placeholderCopy.en.storage,
+        originRegion:
+          product.id === "dev-apricots"
+            ? placeholderCopy.en.productInformation
+            : product.originRegion,
+        category: values.category,
+        categorySlug: values.categorySlug,
+        alternateSlugs: { de: product.slug, en: values.slug },
       }
     : product;
 }
@@ -266,7 +329,7 @@ export async function getProducts(
     bestseller?: boolean;
   },
 ) {
-  if (!env.DATABASE_URL)
+  if (!env.DATABASE_URL || (await developmentCatalogueRequested()))
     return filterDevelopment(
       developmentProducts.map((p) => localiseDevelopment(p, locale)),
       options,
@@ -303,7 +366,7 @@ export async function getProducts(
           : undefined,
       },
       include: {
-        translations: { where: { locale } },
+        translations: true,
         variants: {
           where: { active: true },
           include: { inventory: true },
@@ -319,8 +382,10 @@ export async function getProducts(
       orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
     });
     return records.flatMap((record) => {
-      const tr = record.translations[0];
+      const tr = resolveLocaleRecord(record.translations, locale);
       if (!tr) return [];
+      if (env.NODE_ENV === "production" && !isCompleteProductTranslation(tr))
+        return [];
       const category = record.categories[0]?.category.translations[0];
       return [
         {
@@ -334,11 +399,18 @@ export async function getProducts(
           storageInstructions: tr.storageInstructions,
           originCountry: record.countryOfOrigin ?? "",
           originRegion: record.regionOfOrigin ?? "",
+          responsibleFoodBusiness: record.responsibleFoodBusiness ?? undefined,
           image: record.images[0]?.url ?? "/images/product-placeholder.jpg",
           imageAlt:
             locale === "de"
               ? (record.images[0]?.altDe ?? tr.name)
               : (record.images[0]?.altEn ?? tr.name),
+          alternateSlugs: Object.fromEntries(
+            record.translations.map((translation) => [
+              translation.locale,
+              translation.slug,
+            ]),
+          ),
           category: category?.name ?? "",
           categorySlug: category?.slug ?? "",
           featured: record.featured,
@@ -367,6 +439,16 @@ export async function getProducts(
       developmentProducts.map((p) => localiseDevelopment(p, locale)),
       options,
     );
+  }
+}
+
+async function developmentCatalogueRequested() {
+  if (env.NODE_ENV === "production") return false;
+  if (process.env.E2E_USE_DEVELOPMENT_CATALOGUE === "1") return true;
+  try {
+    return (await headers()).get("x-kdf-e2e-catalogue") === "1";
+  } catch {
+    return false;
   }
 }
 

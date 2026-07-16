@@ -1,3 +1,4 @@
+import { localizedPath } from "@/config/routes";
 import type { AppLocale } from "@/config/site";
 import { Link } from "@/i18n/navigation";
 
@@ -26,10 +27,10 @@ export function Footer({ locale }: { locale: AppLocale }) {
           <Link href="/shop" locale={locale}>
             {de ? "Alle Produkte" : "All products"}
           </Link>
-          <Link href="/gift-boxes" locale={locale}>
+          <Link href={localizedPath("giftBoxes", locale)} locale={locale}>
             {de ? "Geschenkboxen" : "Gift boxes"}
           </Link>
-          <Link href="/wholesale" locale={locale}>
+          <Link href={localizedPath("wholesale", locale)} locale={locale}>
             {de ? "Großhandel" : "Wholesale"}
           </Link>
           <Link href="/our-story" locale={locale}>
@@ -47,7 +48,7 @@ export function Footer({ locale }: { locale: AppLocale }) {
           <Link href="/returns" locale={locale}>
             {de ? "Rückgabe" : "Returns"}
           </Link>
-          <Link href="/contact" locale={locale}>
+          <Link href={localizedPath("contact", locale)} locale={locale}>
             {de ? "Kontakt" : "Contact"}
           </Link>
         </div>

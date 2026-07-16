@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { AppLocale } from "@/config/site";
 import { formatMoney, unitPricePerKg } from "@/lib/commerce/money";
 import { Link } from "@/i18n/navigation";
@@ -11,6 +12,7 @@ export function ProductCard({
   product: CatalogueProduct;
   locale: AppLocale;
 }) {
+  const t = useTranslations("productCard");
   const variant = product.variants[0];
   if (!variant) return null;
   return (
@@ -26,9 +28,7 @@ export function ProductCard({
           aria-hidden="true"
         />
         {product.status === "DRAFT" && (
-          <span className="draft-badge">
-            {locale === "de" ? "Entwurf" : "Draft"}
-          </span>
+          <span className="draft-badge">{t("draft")}</span>
         )}
         <span className="origin-chip">{product.originRegion}</span>
       </Link>
@@ -42,7 +42,7 @@ export function ProductCard({
         <p>{product.shortDescription}</p>
         <div className="product-price">
           <span>
-            {locale === "de" ? "ab" : "from"}{" "}
+            {t("from")}{" "}
             <strong>{formatMoney(variant.priceCents, locale)}</strong>
           </span>
           <small>
@@ -58,8 +58,7 @@ export function ProductCard({
           href={`/product/${product.slug}`}
           locale={locale}
         >
-          {locale === "de" ? "Produkt ansehen" : "View product"}{" "}
-          <ArrowUpRight size={16} />
+          {t("viewProduct")} <ArrowUpRight size={16} />
         </Link>
       </div>
     </article>

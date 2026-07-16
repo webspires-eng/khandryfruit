@@ -3,6 +3,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import type { GiftBoxCartLine } from "@/types/gift-box";
+
 type CartItem = {
   variantId: string;
   productId: string;
@@ -15,9 +17,12 @@ type CartItem = {
 };
 type CartState = {
   items: CartItem[];
+  giftBoxes: GiftBoxCartLine[];
   add: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   update: (variantId: string, quantity: number) => void;
   remove: (variantId: string) => void;
+  addGiftBox: (line: GiftBoxCartLine) => void;
+  removeGiftBox: (configurationId: string) => void;
   clear: () => void;
 };
 
@@ -25,6 +30,7 @@ export const useCart = create<CartState>()(
   persist(
     (set) => ({
       items: [],
+      giftBoxes: [],
       add: (item, quantity = 1) =>
         set((state) => {
           const current = state.items.find(
@@ -58,8 +64,34 @@ export const useCart = create<CartState>()(
         set((state) => ({
           items: state.items.filter((line) => line.variantId !== variantId),
         })),
-      clear: () => set({ items: [] }),
+      addGiftBox: (line) =>
+        set((state) => ({
+          giftBoxes: [
+            ...state.giftBoxes.filter(
+              (entry) => entry.configurationId !== line.configurationId,
+            ),
+            line,
+          ],
+        })),
+      removeGiftBox: (configurationId) =>
+        set((state) => ({
+          giftBoxes: state.giftBoxes.filter(
+            (entry) => entry.configurationId !== configurationId,
+          ),
+        })),
+      clear: () => set({ items: [], giftBoxes: [] }),
     }),
-    { name: "khan-dry-fruit-cart", version: 1 },
+    {
+      name: "khan-dry-fruit-cart",
+      version: 2,
+      migrate: (persisted) => {
+        const state = (persisted ?? {}) as Partial<CartState>;
+        return {
+          ...state,
+          items: state.items ?? [],
+          giftBoxes: state.giftBoxes ?? [],
+        } as CartState;
+      },
+    },
   ),
 );

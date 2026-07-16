@@ -2,6 +2,10 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { checkoutSchema, type ActionResult } from "@/lib/validation/schemas";
 import { calculateCart, CommerceError } from "@/server/services/checkout";
+import {
+  loadGiftBoxCheckoutLines,
+  markConfigurationsOrdered,
+} from "@/server/services/gift-box";
 import { getStripe } from "@/lib/stripe/client";
 import { db } from "@/lib/db/client";
 import { env } from "@/lib/env";
@@ -10,7 +14,12 @@ import { logger } from "@/lib/logging/logger";
 export async function POST(request: Request) {
   const correlationId = randomUUID();
   try {
-    if (!env.DATABASE_URL)
+    if (
+      !env.DATABASE_URL ||
+      process.env.E2E_USE_DEVELOPMENT_CATALOGUE === "1" ||
+      (env.NODE_ENV !== "production" &&
+        request.headers.get("x-kdf-e2e-catalogue") === "1")
+    )
       return fail(
         "DATABASE_NOT_CONFIGURED",
         "Connect Supabase before creating checkout sessions.",
@@ -33,20 +42,41 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     const input = parsed.data;
+    // Gift boxes are re-validated and re-priced from the database — stored
+    // and client-side totals are never trusted.
+    const giftBoxLines = await loadGiftBoxCheckoutLines(
+      input.locale,
+      input.giftBoxes,
+    );
     const calculation = await calculateCart(
       input.locale,
       input.lines,
       input.countryCode,
+      giftBoxLines,
     );
+    // Every physical variant that ships — standard lines plus gift-box
+    // contents — must be published and gets one aggregated reservation.
+    const reservationNeeds = new Map<string, number>();
+    for (const line of calculation.lines)
+      reservationNeeds.set(
+        line.variantId,
+        (reservationNeeds.get(line.variantId) ?? 0) + line.quantity,
+      );
+    for (const box of giftBoxLines)
+      for (const stock of box.stockLines)
+        reservationNeeds.set(
+          stock.variantId,
+          (reservationNeeds.get(stock.variantId) ?? 0) + stock.quantity,
+        );
     const variants = await db.productVariant.findMany({
       where: {
-        id: { in: calculation.lines.map((line) => line.variantId) },
+        id: { in: [...reservationNeeds.keys()] },
         active: true,
         product: { status: "ACTIVE", deletedAt: null },
       },
       include: { inventory: true, product: true },
     });
-    if (variants.length !== calculation.lines.length)
+    if (variants.length !== reservationNeeds.size)
       return fail(
         "PRODUCT_NOT_PUBLISHED",
         "A product is not approved for sale yet.",
@@ -99,10 +129,24 @@ export async function POST(request: Request) {
                 reason: "Checkout created",
               },
             },
+            giftBoxOrderItems: {
+              create: giftBoxLines.map((box) => ({
+                configurationId: box.configurationId,
+                giftBoxName: box.name,
+                sizeName: box.sizeName,
+                packagingName: box.packagingName,
+                giftMessage: box.giftMessage,
+                occasion: box.occasion,
+                quantity: box.quantity,
+                unitPriceCents: box.unitPriceCents,
+                totalCents: box.unitPriceCents * box.quantity,
+                snapshot: box.snapshot,
+              })),
+            },
           },
         });
-        for (const line of calculation.lines) {
-          const variant = variants.find((item) => item.id === line.variantId);
+        for (const [variantId, quantity] of reservationNeeds) {
+          const variant = variants.find((item) => item.id === variantId);
           if (!variant?.inventory)
             throw new CommerceError(
               "INVENTORY_MISSING",
@@ -112,10 +156,10 @@ export async function POST(request: Request) {
             where: {
               id: variant.inventory.id,
               version: variant.inventory.version,
-              onHand: { gte: variant.inventory.reserved + line.quantity },
+              onHand: { gte: variant.inventory.reserved + quantity },
             },
             data: {
-              reserved: { increment: line.quantity },
+              reserved: { increment: quantity },
               version: { increment: 1 },
             },
           });
@@ -128,7 +172,7 @@ export async function POST(request: Request) {
             data: {
               inventoryId: variant.inventory.id,
               orderId: created.id,
-              quantity: line.quantity,
+              quantity,
               expiresAt: reservationExpiresAt,
             },
           });
@@ -144,21 +188,36 @@ export async function POST(request: Request) {
           customer_email: input.email,
           billing_address_collection: "required",
           shipping_address_collection: { allowed_countries: ["DE"] },
-          line_items: calculation.lines.map((line) => ({
-            quantity: line.quantity,
-            price_data: {
-              currency: "eur",
-              unit_amount: line.unitPriceCents,
-              product_data: {
-                name: line.name,
-                metadata: {
-                  productId: line.productId,
-                  variantId: line.variantId,
-                  sku: line.sku,
+          line_items: [
+            ...calculation.lines.map((line) => ({
+              quantity: line.quantity,
+              price_data: {
+                currency: "eur",
+                unit_amount: line.unitPriceCents,
+                product_data: {
+                  name: line.name,
+                  metadata: {
+                    productId: line.productId,
+                    variantId: line.variantId,
+                    sku: line.sku,
+                  },
                 },
               },
-            },
-          })),
+            })),
+            ...giftBoxLines.map((box) => ({
+              quantity: box.quantity,
+              price_data: {
+                currency: "eur",
+                unit_amount: box.unitPriceCents,
+                product_data: {
+                  name: `${box.name} (${box.sizeName})`,
+                  metadata: {
+                    giftBoxConfigurationId: box.configurationId,
+                  },
+                },
+              },
+            })),
+          ],
           metadata: {
             orderId: order.id,
             orderNumber: order.number,
@@ -182,6 +241,9 @@ export async function POST(request: Request) {
         where: { id: order.id },
         data: { stripeCheckoutId: session.id },
       });
+      await markConfigurationsOrdered(
+        giftBoxLines.map((box) => box.configurationId),
+      );
       logger.info("checkout_session_created", {
         correlationId,
         orderId: order.id,

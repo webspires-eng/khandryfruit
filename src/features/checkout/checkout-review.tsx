@@ -5,9 +5,11 @@ import { LockKeyhole } from "lucide-react";
 import type { AppLocale } from "@/config/site";
 import { useCart } from "@/features/cart/store";
 import { formatMoney } from "@/lib/commerce/money";
+import { localiseCheckoutError } from "@/lib/i18n/content";
 
 export function CheckoutReview({ locale }: { locale: AppLocale }) {
   const items = useCart((state) => state.items);
+  const giftBoxes = useCart((state) => state.giftBoxes);
   const de = locale === "de";
   const [email, setEmail] = useState("");
   const [accepted, setAccepted] = useState(false);
@@ -30,22 +32,30 @@ export function CheckoutReview({ locale }: { locale: AppLocale }) {
             variantId,
             quantity,
           })),
+          giftBoxes: giftBoxes.map(({ configurationId, quantity }) => ({
+            configurationId,
+            quantity,
+          })),
         }),
       });
       const result = (await response.json()) as {
         success: boolean;
         data?: { url: string };
-        error?: { message: string };
+        error?: { code: string };
       };
       if (!response.ok || !result.success || !result.data)
-        throw new Error(result.error?.message ?? "Checkout failed");
+        throw new Error(localiseCheckoutError(locale, result.error?.code));
       window.location.assign(result.data.url);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Checkout failed");
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : localiseCheckoutError(locale, "CHECKOUT_FAILED"),
+      );
       setPending(false);
     }
   };
-  if (!items.length)
+  if (!items.length && !giftBoxes.length)
     return (
       <div className="empty-state">
         <h2>{de ? "Keine Artikel zur Kasse" : "No items to check out"}</h2>
@@ -121,6 +131,19 @@ export function CheckoutReview({ locale }: { locale: AppLocale }) {
             </span>
             <strong>
               {formatMoney(item.unitPriceCents * item.quantity, locale)}
+            </strong>
+          </div>
+        ))}
+        {giftBoxes.map((box) => (
+          <div className="review-line" key={box.configurationId}>
+            <span>
+              {box.quantity}× {box.name}
+              <small>
+                {de ? "Geschenkbox" : "Gift box"} · {box.sizeName}
+              </small>
+            </span>
+            <strong>
+              {formatMoney(box.totalCents * box.quantity, locale)}
             </strong>
           </div>
         ))}

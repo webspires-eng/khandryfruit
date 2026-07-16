@@ -4,10 +4,17 @@ import { NextResponse } from "next/server";
 
 import type { AdminArea } from "@/config/admin";
 import { adminAreas, canAccessAdmin } from "@/config/admin";
+import { resolveLocalizedPathname } from "@/config/routes";
 import { routing } from "@/i18n/navigation";
 import { auth } from "@/lib/auth/auth";
 
 const localeMiddleware = createMiddleware(routing);
+
+function continueAdmin(request: NextRequest) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-next-intl-locale", "en");
+  return NextResponse.next({ request: { headers: requestHeaders } });
+}
 
 function adminArea(pathname: string): AdminArea {
   const segment = pathname.split("/").filter(Boolean)[1];
@@ -44,7 +51,7 @@ export default async function proxy(request: NextRequest) {
     // mutations continue to the layout/page/action checks so Next can return
     // its native protocol response instead of HTML.
     if (request.method !== "GET" || request.headers.get("rsc") === "1")
-      return NextResponse.next();
+      return continueAdmin(request);
     const session = await auth.api.getSession({ headers: request.headers });
     if (!session) return accessResponse(401);
     if (
@@ -54,7 +61,21 @@ export default async function proxy(request: NextRequest) {
       )
     )
       return accessResponse(403);
-    return NextResponse.next();
+    return continueAdmin(request);
+  }
+
+  const localized = resolveLocalizedPathname(request.nextUrl.pathname);
+  if (localized) {
+    const url = request.nextUrl.clone();
+    url.pathname = localized.path;
+    if (localized.action === "redirect")
+      return NextResponse.redirect(url, 308);
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set(
+      "x-next-intl-locale",
+      localized.path.split("/").filter(Boolean)[0] ?? "de",
+    );
+    return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
   }
 
   return localeMiddleware(request);

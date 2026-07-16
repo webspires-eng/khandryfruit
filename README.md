@@ -39,6 +39,20 @@ Routes cover dashboard, products, categories, inventory, orders, customers, whol
 
 The initial migration defines the commerce/auth domain. `20260715230000_admin_dashboard_fields` adds admin-required variant ordering, inventory notes, wholesale review fields, gift-box configuration records and search aliases. Apply migrations with `npm run db:deploy` before seeding.
 
+## Localisation policy
+
+German (`de`) is the default locale and all public storefront routes are locale-prefixed. Interface copy is stored in `messages/de.json` and `messages/en.json`; missing next-intl keys fail visibly during development.
+
+Product and legal content never falls back across languages. Public product queries require the exact locale translation and exclude incomplete locale records in production. Category and CMS fallback must be explicitly implemented and documented before use; there is no implicit fallback today. Development previews use locale-specific placeholder copy and remain `noindex`.
+
+Audit existing development data without making changes:
+
+```bash
+npm run db:audit-localisation
+```
+
+After reviewing the JSON report, apply only the script's exact known-placeholder repairs with `npm run db:repair-localisation`. Free-form descriptions flagged under `manualReview` are never overwritten automatically.
+
 ## Better Auth on Vercel + Supabase
 
 Better Auth—not Supabase Auth—is the authentication authority. It stores `user`, `session`, `account` and `verification` tables in Supabase PostgreSQL. Set these Vercel variables:

@@ -16,11 +16,22 @@ export class CommerceError extends Error {
   }
 }
 
+/** Server-priced gift-box totals folded into the cart calculation. */
+export type GiftBoxTotalsInput = {
+  unitPriceCents: number;
+  taxCents: number;
+  weightGrams: number;
+  quantity: number;
+};
+
 export async function calculateCart(
   locale: AppLocale,
   inputs: CartLineInput[],
   countryCode = "DE",
+  giftBoxes: GiftBoxTotalsInput[] = [],
 ): Promise<CartCalculation> {
+  if (inputs.length === 0 && giftBoxes.length === 0)
+    throw new CommerceError("EMPTY_CART", "The cart is empty.");
   const uniqueIds = [...new Set(inputs.map((line) => line.variantId))];
   const records = await getVariantsByIds(locale, uniqueIds);
   if (records.length !== uniqueIds.length)
@@ -62,14 +73,16 @@ export async function calculateCart(
       taxCents: includedTax(lineTotalCents, record.variant.vatRateBps),
     };
   });
-  const subtotalCents = lines.reduce(
-    (sum, line) => sum + line.lineTotalCents,
+  const giftBoxSubtotalCents = giftBoxes.reduce(
+    (sum, box) => sum + box.unitPriceCents * box.quantity,
     0,
   );
-  const weightGrams = lines.reduce(
-    (sum, line) => sum + line.weightGrams * line.quantity,
-    0,
-  );
+  const subtotalCents =
+    lines.reduce((sum, line) => sum + line.lineTotalCents, 0) +
+    giftBoxSubtotalCents;
+  const weightGrams =
+    lines.reduce((sum, line) => sum + line.weightGrams * line.quantity, 0) +
+    giftBoxes.reduce((sum, box) => sum + box.weightGrams * box.quantity, 0);
   const [shipping] = await new MockShippingProvider().calculateRates({
     countryCode,
     weightGrams,
@@ -80,7 +93,9 @@ export async function calculateCart(
       "SHIPPING_UNAVAILABLE",
       "Shipping is not available for this destination.",
     );
-  const taxCents = lines.reduce((sum, line) => sum + line.taxCents, 0);
+  const taxCents =
+    lines.reduce((sum, line) => sum + line.taxCents, 0) +
+    giftBoxes.reduce((sum, box) => sum + box.taxCents * box.quantity, 0);
   return {
     lines,
     subtotalCents,

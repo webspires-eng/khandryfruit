@@ -21,8 +21,10 @@ export type CatalogueProduct = {
   storageInstructions: string;
   originCountry: string;
   originRegion: string;
+  responsibleFoodBusiness?: string;
   image: string;
   imageAlt: string;
+  alternateSlugs?: Partial<Record<AppLocale, string>>;
   category: string;
   categorySlug: string;
   featured: boolean;

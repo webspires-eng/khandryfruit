@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { placeholderCopy } from "../src/lib/i18n/content";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) throw new Error("DATABASE_URL is required for seeding");
@@ -84,7 +85,7 @@ const products = [
     "Dried Apricots",
     "getrocknete-aprikosen",
     "dried-apricots",
-    "[REGION REQUIRED]",
+    "",
     "apricots",
     "Aprikosen",
     "Apricots",
@@ -219,13 +220,14 @@ async function seedCatalogue() {
   ] of products) {
     await db.product.upsert({
       where: { id: `prod-${key}` },
-      update: {},
+      update: { giftSuitable: true },
       create: {
         id: `prod-${key}`,
         internalName: key,
         status: "DRAFT",
         featured: true,
         bestseller: ["black-raisins", "afghan-figs"].includes(key),
+        giftSuitable: true,
         countryOfOrigin: "Afghanistan",
         regionOfOrigin: region,
         translations: {
@@ -236,11 +238,15 @@ async function seedCatalogue() {
               slug: slugDe,
               alternativeNames: [],
               keywords: [nameDe, region],
-              shortDescription: `${nameDe} aus ${region}; Entwicklungsprodukt bis alle Pflichtdaten bestätigt sind.`,
-              description: `Die Herkunftsangabe ${region} ist ${region.startsWith("[") ? "noch nicht bestätigt" : "als Beispiel bestätigt"}. Weitere Produktdaten benötigen Freigabe.`,
-              ingredients: "[ZUTATEN VOR VERÖFFENTLICHUNG BESTÄTIGEN]",
-              allergenStatement: "[ALLERGENINFORMATION ERFORDERLICH]",
-              storageInstructions: "[LAGERHINWEISE ERFORDERLICH]",
+              shortDescription: region
+                ? `${nameDe} aus ${region}; Entwicklungsprodukt bis alle Pflichtdaten bestätigt sind.`
+                : placeholderCopy.de.productInformation,
+              description: region
+                ? `Die Herkunftsangabe ${region} ist als Beispiel bestätigt. Weitere Produktdaten benötigen Freigabe.`
+                : placeholderCopy.de.productInformation,
+              ingredients: placeholderCopy.de.ingredients,
+              allergenStatement: placeholderCopy.de.allergens,
+              storageInstructions: placeholderCopy.de.storage,
               seoTitle: `${nameDe} | Khan Dry Fruit`,
               metaDescription: `${nameDe} als Entwicklungsprodukt. Pflichtangaben werden vor Veröffentlichung geprüft.`,
             },
@@ -250,11 +256,15 @@ async function seedCatalogue() {
               slug: slugEn,
               alternativeNames: [],
               keywords: [nameEn, region],
-              shortDescription: `${nameEn} from ${region}; development product until mandatory data is confirmed.`,
-              description: `The ${region} sourcing entry is ${region.startsWith("[") ? "not yet confirmed" : "confirmed as an example"}. Further product data requires approval.`,
-              ingredients: "[CONFIRM INGREDIENTS BEFORE PUBLICATION]",
-              allergenStatement: "[ALLERGEN INFORMATION REQUIRED]",
-              storageInstructions: "[STORAGE INSTRUCTIONS REQUIRED]",
+              shortDescription: region
+                ? `${nameEn} from ${region}; development product until mandatory data is confirmed.`
+                : placeholderCopy.en.productInformation,
+              description: region
+                ? `The ${region} sourcing entry is confirmed as an example. Further product data requires approval.`
+                : placeholderCopy.en.productInformation,
+              ingredients: placeholderCopy.en.ingredients,
+              allergenStatement: placeholderCopy.en.allergens,
+              storageInstructions: placeholderCopy.en.storage,
               seoTitle: `${nameEn} | Khan Dry Fruit`,
               metaDescription: `${nameEn} as a development product. Mandatory data will be checked before publication.`,
             },
@@ -406,10 +416,13 @@ async function seedOperations() {
         create: {
           key,
           locale,
-          title: `${key} [DEVELOPMENT]`,
+          title:
+            locale === "de"
+              ? `${key} – Entwicklungsfassung`
+              : `${key} – Development draft`,
           contentJson: {
             type: "placeholder",
-            text: "[LEGAL TEXT REQUIRED BEFORE LAUNCH]",
+            text: placeholderCopy[locale].legal,
           },
           complete: false,
           version: "development-1",
@@ -417,11 +430,224 @@ async function seedOperations() {
       });
 }
 
+async function seedStorefrontFeatures() {
+  // Build-your-own box size templates (fixed: false).
+  const templates = [
+    ["gift-box-small", "Kleine Geschenkbox", "Small Gift Box", "SMALL", 3, 2, 3, 399],
+    [
+      "gift-box-medium",
+      "Mittlere Geschenkbox",
+      "Medium Gift Box",
+      "MEDIUM",
+      5,
+      3,
+      5,
+      599,
+    ],
+    ["gift-box-large", "Große Geschenkbox", "Large Gift Box", "LARGE", 8, 4, 8, 799],
+  ] as const;
+  for (const [id, nameDe, nameEn, sizeName, capacity, min, max, price] of templates)
+    await db.giftBox.upsert({
+      where: { id },
+      update: {},
+      create: {
+        id,
+        internalName: id,
+        nameDe,
+        nameEn,
+        slugDe: `${id}-de`,
+        slugEn: `${id}-en`,
+        descriptionDe: `${nameDe} zum Selbstbefüllen – Boxpauschale inklusive Karte und Einlage.`,
+        descriptionEn: `${nameEn} for the build-your-own flow – box charge includes card and lining.`,
+        seoTitleDe: `${nameDe} | Khan Dry Fruit`,
+        seoTitleEn: `${nameEn} | Khan Dry Fruit`,
+        metaDescriptionDe: `${nameDe} mit afghanischen Trockenfrüchten selbst zusammenstellen.`,
+        metaDescriptionEn: `Build your own ${nameEn.toLowerCase()} with Afghan dry fruits.`,
+        sizeName,
+        fixed: false,
+        active: true,
+        basePriceCents: price,
+        capacityUnits: capacity,
+        minItems: min,
+        maxItems: max,
+        occasions: [],
+      },
+    });
+
+  // One curated fixed gift box built from seeded catalogue variants.
+  const fixedItems = [
+    ["prod-black-raisins", "DEV-BLACK-RAISINS-500"],
+    ["prod-afghan-figs", "DEV-AFGHAN-FIGS-500"],
+    ["prod-dried-mulberries", "DEV-DRIED-MULBERRIES-500"],
+  ] as const;
+  const variants = await db.productVariant.findMany({
+    where: { sku: { in: fixedItems.map(([, sku]) => sku) } },
+  });
+  const fixedBox = await db.giftBox.upsert({
+    where: { id: "gift-box-classic" },
+    update: {},
+    create: {
+      id: "gift-box-classic",
+      internalName: "gift-box-classic",
+      nameDe: "Klassische Auswahl",
+      nameEn: "Classic Selection",
+      slugDe: "klassische-auswahl",
+      slugEn: "classic-selection",
+      descriptionDe:
+        "Unsere beliebtesten Trockenfrüchte in einer festlichen Box – Rosinen aus Kabul, Feigen aus Kandahar und Maulbeeren aus Shamali.",
+      descriptionEn:
+        "Our most popular dry fruits in one festive box – raisins from Kabul, figs from Kandahar and mulberries from Shamali.",
+      seoTitleDe: "Klassische Geschenkbox | Khan Dry Fruit",
+      seoTitleEn: "Classic Gift Box | Khan Dry Fruit",
+      metaDescriptionDe:
+        "Kuratierte Geschenkbox mit afghanischen Trockenfrüchten – ideal zu Eid, Weihnachten und als Dankeschön.",
+      metaDescriptionEn:
+        "Curated gift box with Afghan dry fruits – ideal for Eid, Christmas and thank-you gifts.",
+      sizeName: "MEDIUM",
+      fixed: true,
+      active: true,
+      basePriceCents: 599,
+      capacityUnits: 5,
+      minItems: 3,
+      maxItems: 5,
+      occasions: ["EID", "CHRISTMAS", "THANK_YOU", "GENERAL"],
+    },
+  });
+  for (const [productId, sku] of fixedItems) {
+    const variant = variants.find((entry) => entry.sku === sku);
+    if (!variant) continue;
+    await db.giftBoxItem.upsert({
+      where: {
+        giftBoxId_variantId: { giftBoxId: fixedBox.id, variantId: variant.id },
+      },
+      update: {},
+      create: {
+        giftBoxId: fixedBox.id,
+        productId,
+        variantId: variant.id,
+        quantity: 1,
+        units: 1,
+      },
+    });
+  }
+
+  // Gift packaging options.
+  const packaging = [
+    [
+      "packaging-classic",
+      "Klassische Box",
+      "Classic box",
+      "Stabile Geschenkbox mit Seidenpapier.",
+      "Sturdy gift box with tissue paper.",
+      0,
+      0,
+    ],
+    [
+      "packaging-premium",
+      "Premium-Verpackung",
+      "Premium wrap",
+      "Geschenkband, Grußkarte und festliche Verpackung.",
+      "Ribbon, greeting card and festive wrapping.",
+      490,
+      1,
+    ],
+    [
+      "packaging-corporate",
+      "Firmenverpackung",
+      "Corporate packaging",
+      "Neutrale, hochwertige Verpackung für Geschäftskunden.",
+      "Neutral premium packaging for corporate clients.",
+      690,
+      2,
+    ],
+  ] as const;
+  for (const [id, nameDe, nameEn, descDe, descEn, price, sortOrder] of packaging)
+    await db.giftPackagingOption.upsert({
+      where: { id },
+      update: {},
+      create: {
+        id,
+        nameDe,
+        nameEn,
+        descriptionDe: descDe,
+        descriptionEn: descEn,
+        priceCents: price,
+        active: true,
+        sortOrder,
+      },
+    });
+
+  // One sample wholesale application for admin-side development.
+  const sampleEmail = "development-wholesale@khandryfruit.local";
+  if (!(await db.wholesaleApplication.findFirst({ where: { email: sampleEmail } })))
+    await db.wholesaleApplication.create({
+      data: {
+        companyName: "Development Feinkost GmbH",
+        contactName: "Dev Ansprechperson",
+        email: sampleEmail,
+        phone: "+4917600000000",
+        businessAddress: "Musterstraße 1",
+        city: "Duisburg",
+        postalCode: "47051",
+        countryCode: "DE",
+        vatId: "DE000000000",
+        businessType: "GROCERY_RETAILER",
+        monthlyOrderVolume: "FROM_500_TO_1500",
+        productsOfInterest: ["Rosinen", "Feigen"],
+        deliveryCountries: ["DE"],
+        preferredContactMethod: "EMAIL",
+        message: "Entwicklungsbeispiel – nicht kontaktieren.",
+        status: "SUBMITTED",
+        agreementAcceptedAt: new Date(),
+        accuracyConfirmedAt: new Date(),
+      },
+    });
+
+  // Popular searches (configurable via admin settings).
+  await db.siteSetting.upsert({
+    where: { key: "search.popularQueries" },
+    update: {},
+    create: {
+      key: "search.popularQueries",
+      value: {
+        de: ["Rosinen", "Feigen", "Maulbeeren", "Aprikosen", "Geschenkbox"],
+        en: ["Raisins", "Figs", "Mulberries", "Apricots", "Gift box"],
+      },
+      type: "JSON",
+      group: "search",
+      public: true,
+    },
+  });
+
+  // Development-only search aliases (common Dari/Farsi and colloquial names).
+  if (process.env.NODE_ENV !== "production") {
+    const aliases: Array<[string, "de" | "en", string]> = [
+      ["prod-black-raisins", "de", "Kishmish"],
+      ["prod-black-raisins", "en", "Kishmish"],
+      ["prod-green-raisins", "de", "Sultaninen"],
+      ["prod-green-raisins", "en", "Sultanas"],
+      ["prod-afghan-figs", "de", "Anjir"],
+      ["prod-afghan-figs", "en", "Anjeer"],
+      ["prod-dried-mulberries", "de", "Toot"],
+      ["prod-dried-mulberries", "en", "Toot"],
+    ];
+    for (const [productId, locale, alias] of aliases)
+      await db.productSearchAlias.upsert({
+        where: {
+          productId_locale_alias: { productId, locale, alias },
+        },
+        update: {},
+        create: { productId, locale, alias },
+      });
+  }
+}
+
 async function main() {
   await seedRoles();
   await seedUsers();
   await seedCatalogue();
   await seedOperations();
+  await seedStorefrontFeatures();
 }
 main()
   .then(() => console.info("Khan Dry Fruit development seed completed."))

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Minus, Plus, ShoppingBag } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { AppLocale } from "@/config/site";
 import { useCart } from "@/features/cart/store";
 import { formatMoney, unitPricePerKg } from "@/lib/commerce/money";
@@ -14,6 +15,7 @@ export function ProductPurchase({
   product: CatalogueProduct;
   locale: AppLocale;
 }) {
+  const t = useTranslations("product");
   const [variantId, setVariantId] = useState(product.variants[0]?.id ?? "");
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
@@ -40,14 +42,8 @@ export function ProductPurchase({
     <div className="purchase-panel">
       {product.status === "DRAFT" && (
         <div className="warning-box">
-          <strong>
-            {locale === "de" ? "Entwicklungsprodukt" : "Development product"}
-          </strong>
-          <span>
-            {locale === "de"
-              ? "Preis und Pflichtangaben sind noch nicht freigegeben."
-              : "Price and mandatory food data are not approved yet."}
-          </span>
+          <strong>{t("developmentProduct")}</strong>
+          <span>{t("draftNotice")}</span>
         </div>
       )}
       <div className="purchase-price">
@@ -60,13 +56,9 @@ export function ProductPurchase({
           /kg
         </span>
       </div>
-      <p className="muted">
-        {locale === "de"
-          ? "inkl. MwSt., sofern anwendbar · zzgl. Versand"
-          : "incl. VAT where applicable · plus shipping"}
-      </p>
+      <p className="muted">{t("vatShipping")}</p>
       <fieldset>
-        <legend>{locale === "de" ? "Gewicht" : "Weight"}</legend>
+        <legend>{t("weight")}</legend>
         <div className="variant-grid">
           {product.variants.map((item) => (
             <button
@@ -84,27 +76,19 @@ export function ProductPurchase({
       </fieldset>
       <div className="stock-line">
         <Check size={17} />{" "}
-        {variant.available > 0
-          ? locale === "de"
-            ? "Im Entwicklungslager verfügbar"
-            : "Available in development inventory"
-          : locale === "de"
-            ? "Nicht verfügbar"
-            : "Unavailable"}
+        {variant.available > 0 ? t("available") : t("unavailable")}
       </div>
       <div className="purchase-actions">
         <div className="quantity">
           <button
-            aria-label={
-              locale === "de" ? "Menge verringern" : "Decrease quantity"
-            }
+            aria-label={t("decreaseQuantity")}
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
           >
             <Minus size={16} />
           </button>
           <output aria-live="polite">{quantity}</output>
           <button
-            aria-label={locale === "de" ? "Menge erhöhen" : "Increase quantity"}
+            aria-label={t("increaseQuantity")}
             onClick={() => setQuantity(Math.min(20, quantity + 1))}
           >
             <Plus size={16} />
@@ -117,21 +101,16 @@ export function ProductPurchase({
         >
           {added ? (
             <>
-              <Check size={18} /> {locale === "de" ? "Hinzugefügt" : "Added"}
+              <Check size={18} /> {t("added")}
             </>
           ) : (
             <>
-              <ShoppingBag size={18} />{" "}
-              {locale === "de" ? "In den Warenkorb" : "Add to cart"}
+              <ShoppingBag size={18} /> {t("addToCart")}
             </>
           )}
         </button>
       </div>
-      <div className="trust-note">
-        {locale === "de"
-          ? "Sichere Zahlung über Stripe · Preise werden serverseitig geprüft"
-          : "Secure Stripe payment · Prices are verified server-side"}
-      </div>
+      <div className="trust-note">{t("securePayment")}</div>
     </div>
   );
 }

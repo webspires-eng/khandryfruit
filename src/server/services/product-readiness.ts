@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db/client";
 import { productPublicationBlockers } from "@/lib/commerce/publication";
+import { isPlaceholder } from "@/lib/i18n/content";
 
 export async function getProductReadiness(productId: string) {
   const product = await db.product.findUnique({ where: { id: productId }, include: { translations: true, variants: { include: { inventory: true } }, images: true, nutrition: true, categories: true, claims: true } });
@@ -11,6 +12,8 @@ export async function getProductReadiness(productId: string) {
   return { product, blockers, score: Math.max(0, Math.round(((totalChecks - Math.min(blockers.length, totalChecks)) / totalChecks) * 100)), ready: blockers.length === 0 };
 }
 
-function cleanPlaceholder(value?: string) { return value && !value.startsWith("[") ? value : undefined; }
+function cleanPlaceholder(value?: string) {
+  return value && !isPlaceholder(value) ? value : undefined;
+}
 
 export async function countBlockedProducts() { const ids = await db.product.findMany({ where: { status: { in: ["DRAFT", "ACTIVE"] }, deletedAt: null }, select: { id: true } }); const results = await Promise.all(ids.map(({ id }) => getProductReadiness(id))); return results.filter((result) => result && !result.ready).length; }

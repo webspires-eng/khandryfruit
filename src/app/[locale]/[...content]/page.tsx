@@ -22,26 +22,6 @@ const pages: Record<
       "Development products currently marked as bestsellers. Genuine sales data will replace this selection after launch.",
     ],
   },
-  "gift-boxes": {
-    de: [
-      "Geschenkboxen",
-      "Feste und individuelle Geschenkboxen werden nach Freigabe von Verpackung, Kapazität und Preisen aktiviert.",
-    ],
-    en: [
-      "Gift boxes",
-      "Fixed and custom gift boxes will be enabled after packaging, capacity and pricing are approved.",
-    ],
-  },
-  wholesale: {
-    de: [
-      "Großhandel",
-      "Für Händler, Gastronomie und Unternehmen entsteht ein geschützter Bereich mit individuellen Preislisten und Mindestbestellwerten.",
-    ],
-    en: [
-      "Wholesale",
-      "A protected trade area with custom price lists and minimum order values is being prepared for retailers, hospitality and businesses.",
-    ],
-  },
   "our-story": {
     de: [
       "Unsere Geschichte",
@@ -82,16 +62,6 @@ const pages: Record<
       "Sourcing, storage, product guides and gifting ideas—editorially prepared and reviewed before publication.",
     ],
   },
-  contact: {
-    de: [
-      "Kontakt",
-      "Telefon und WhatsApp: +49 176 21809185. Geschäftsadresse, E-Mail und Öffnungszeiten werden erst nach Bestätigung veröffentlicht.",
-    ],
-    en: [
-      "Contact",
-      "Phone and WhatsApp: +49 176 21809185. Business address, email and opening hours will only be published after confirmation.",
-    ],
-  },
   faq: {
     de: [
       "Häufige Fragen",
@@ -105,66 +75,66 @@ const pages: Record<
   shipping: {
     de: [
       "Versand & Lieferung",
-      "[VERSANDDIENSTLEISTER, PREISE UND VERSPRECHEN VOR DEM START BESTÄTIGEN]",
+      "Versanddienstleister, Preise und Lieferzusagen müssen vor dem Start bestätigt werden.",
     ],
     en: [
       "Shipping & delivery",
-      "[CONFIRM CARRIER, RATES AND PROMISES BEFORE LAUNCH]",
+      "The carrier, rates and delivery promises must be confirmed before launch.",
     ],
     legal: true,
   },
   returns: {
     de: [
       "Rückgabe & Erstattung",
-      "[RECHTLICH GEPRÜFTE RÜCKGABE- UND ERSTATTUNGSRICHTLINIE VOR DEM START ERFORDERLICH]",
+      "Eine rechtlich geprüfte Rückgabe- und Erstattungsrichtlinie ist vor dem Start erforderlich.",
     ],
     en: [
       "Returns & refunds",
-      "[LEGALLY REVIEWED RETURNS AND REFUND POLICY REQUIRED BEFORE LAUNCH]",
+      "A legally reviewed returns and refund policy is required before launch.",
     ],
     legal: true,
   },
   privacy: {
     de: [
       "Datenschutzerklärung",
-      "[RECHTLICH GEPRÜFTE DATENSCHUTZERKLÄRUNG VOR DEM START ERFORDERLICH]",
+      "Eine rechtlich geprüfte Datenschutzerklärung ist vor dem Start erforderlich.",
     ],
     en: [
       "Privacy policy",
-      "[LEGALLY REVIEWED PRIVACY POLICY REQUIRED BEFORE LAUNCH]",
+      "A legally reviewed privacy policy is required before launch.",
     ],
     legal: true,
   },
   terms: {
     de: [
       "Allgemeine Geschäftsbedingungen",
-      "[RECHTLICH GEPRÜFTE AGB VOR DEM START ERFORDERLICH]",
+      "Rechtlich geprüfte Allgemeine Geschäftsbedingungen sind vor dem Start erforderlich.",
     ],
     en: [
       "Terms and conditions",
-      "[LEGALLY REVIEWED TERMS REQUIRED BEFORE LAUNCH]",
+      "Legally reviewed terms and conditions are required before launch.",
     ],
     legal: true,
   },
   withdrawal: {
     de: [
       "Widerrufsbelehrung",
-      "[RECHTLICH GEPRÜFTE WIDERRUFSBELEHRUNG UND MUSTERFORMULAR VOR DEM START ERFORDERLICH]",
+      "Eine rechtlich geprüfte Widerrufsbelehrung mit Musterformular ist vor dem Start erforderlich.",
     ],
     en: [
       "Withdrawal policy",
-      "[LEGALLY REVIEWED WITHDRAWAL POLICY AND MODEL FORM REQUIRED BEFORE LAUNCH]",
+      "A legally reviewed withdrawal policy and model form are required before launch.",
     ],
     legal: true,
   },
   impressum: {
     de: [
       "Impressum",
-      "[VOLLSTÄNDIGE ANSCHRIFT, REGISTRIERUNG, USt-ID UND AUFSICHTSANGABEN VOR DEM START ERFORDERLICH]",
+      "Die vollständige Anschrift, Registrierung, USt-ID und Aufsichtsangaben sind vor dem Start erforderlich.",
     ],
     en: [
       "Legal notice",
-      "[FULL ADDRESS, REGISTRATION, VAT ID AND SUPERVISORY DETAILS REQUIRED BEFORE LAUNCH]",
+      "The full address, registration, VAT ID and supervisory details are required before launch.",
     ],
     legal: true,
   },
@@ -185,14 +155,6 @@ const pages: Record<
       "Melden Sie sich an, um Ihre Wunschliste geräteübergreifend zu speichern.",
     ],
     en: ["Wishlist", "Sign in to save your wishlist across devices."],
-    noindex: true,
-  },
-  search: {
-    de: [
-      "Suche",
-      "Suchen Sie nach Produktnamen, Sorten und Herkunftsregionen.",
-    ],
-    en: ["Search", "Search by product name, variety and sourcing region."],
     noindex: true,
   },
   "order/cancelled": {
@@ -230,8 +192,9 @@ export async function generateMetadata({
   const copy = page[locale];
   return {
     title: copy[0],
-    description: copy[1].replace(/\[.*\]/, "Khan Dry Fruit"),
-    robots: page.noindex ? { index: false, follow: false } : undefined,
+    description: copy[1],
+    robots:
+      page.noindex || page.legal ? { index: false, follow: false } : undefined,
   };
 }
 export default async function ContentPage({
@@ -255,9 +218,7 @@ export default async function ContentPage({
             : "Development placeholder—not legal advice or production-ready legal text."}
         </div>
       )}
-      <p className={body.startsWith("[") ? "placeholder-copy" : "lead-copy"}>
-        {body}
-      </p>
+      <p className={page.legal ? "placeholder-copy" : "lead-copy"}>{body}</p>
       <div className="content-actions">
         <Link className="button" href="/shop" locale={locale}>
           {locale === "de" ? "Shop entdecken" : "Explore shop"}

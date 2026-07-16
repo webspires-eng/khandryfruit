@@ -1,6 +1,8 @@
-import { Heart, Search, UserRound } from "lucide-react";
+import { Heart, UserRound } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { localizedPath } from "@/config/routes";
 import type { AppLocale } from "@/config/site";
+import { HeaderSearch } from "@/features/search/header-search";
 import { Link } from "@/i18n/navigation";
 import { CartLink } from "./cart-link";
 import { LanguageSwitcher } from "./language-switcher";
@@ -10,11 +12,11 @@ export async function Header({ locale }: { locale: AppLocale }) {
   const nav = [
     ["/shop", t("shop")],
     ["/bestsellers", t("bestsellers")],
-    ["/gift-boxes", t("giftBoxes")],
-    ["/wholesale", t("wholesale")],
+    [localizedPath("giftBoxes", locale), t("giftBoxes")],
+    [localizedPath("wholesale", locale), t("wholesale")],
     ["/our-story", t("story")],
     ["/recipes", t("recipes")],
-    ["/contact", t("contact")],
+    [localizedPath("contact", locale), t("contact")],
   ] as const;
   return (
     <>
@@ -48,14 +50,7 @@ export async function Header({ locale }: { locale: AppLocale }) {
             ))}
           </nav>
           <div className="header-actions">
-            <Link
-              href="/search"
-              locale={locale}
-              className="icon-link"
-              aria-label={t("search")}
-            >
-              <Search size={20} />
-            </Link>
+            <HeaderSearch />
             <LanguageSwitcher />
             <Link
               href="/account"

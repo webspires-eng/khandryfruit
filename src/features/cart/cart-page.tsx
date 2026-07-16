@@ -1,18 +1,21 @@
 "use client";
 
-import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { Gift, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 import type { AppLocale } from "@/config/site";
+import { localizedPath } from "@/config/routes";
 import { useCart } from "@/features/cart/store";
 import { formatMoney } from "@/lib/commerce/money";
 
 export function CartPageClient({ locale }: { locale: AppLocale }) {
-  const { items, update, remove } = useCart();
+  const { items, giftBoxes, update, remove, removeGiftBox } = useCart();
+  const tGift = useTranslations("giftBoxCart");
   const de = locale === "de";
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.unitPriceCents * item.quantity,
-    0,
-  );
-  if (!items.length)
+  const subtotal =
+    items.reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0) +
+    giftBoxes.reduce((sum, line) => sum + line.totalCents * line.quantity, 0);
+  if (!items.length && !giftBoxes.length)
     return (
       <div className="empty-state large">
         <ShoppingBag size={42} />
@@ -69,6 +72,63 @@ export function CartPageClient({ locale }: { locale: AppLocale }) {
               className="remove-button"
               onClick={() => remove(item.variantId)}
               aria-label={`${item.name} ${de ? "entfernen" : "remove"}`}
+            >
+              <Trash2 size={17} />
+            </button>
+          </article>
+        ))}
+        {giftBoxes.map((line) => (
+          <article className="cart-line" key={line.configurationId}>
+            <div className="cart-thumb">
+              <Gift size={22} aria-hidden="true" />
+            </div>
+            <div>
+              <h2>
+                {tGift("label")} · {line.name}
+              </h2>
+              <div className="cart-line-meta">
+                <span>
+                  {tGift("size")}: {line.sizeName}
+                </span>
+                {line.packagingName && (
+                  <span>
+                    {tGift("packaging")}: {line.packagingName}
+                  </span>
+                )}
+                {line.giftMessage && (
+                  <span>
+                    {tGift("message")}: “{line.giftMessage}”
+                  </span>
+                )}
+              </div>
+              <p>{tGift("contents")}:</p>
+              <ul className="cart-gift-contents">
+                {line.items.map((item, index) => (
+                  <li key={`${line.configurationId}-${index}`}>
+                    {item.quantity} × {item.name} (
+                    {item.weightGrams >= 1000
+                      ? `${item.weightGrams / 1000} kg`
+                      : `${item.weightGrams} g`}
+                    )
+                  </li>
+                ))}
+              </ul>
+              <div className="cart-line-actions">
+                <a
+                  className="text-link"
+                  href={`/${locale}${localizedPath("giftBoxBuilder", locale)}?edit=${line.configurationId}`}
+                >
+                  {tGift("edit")}
+                </a>
+              </div>
+            </div>
+            <strong className="line-total">
+              {formatMoney(line.totalCents * line.quantity, locale)}
+            </strong>
+            <button
+              className="remove-button"
+              onClick={() => removeGiftBox(line.configurationId)}
+              aria-label={`${line.name} ${tGift("remove")}`}
             >
               <Trash2 size={17} />
             </button>

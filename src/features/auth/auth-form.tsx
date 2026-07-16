@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { AppLocale } from "@/config/site";
 import { signIn, signUp } from "@/lib/auth/client";
 
@@ -13,6 +14,7 @@ export function AuthForm({
   mode: "sign-in" | "sign-up";
 }) {
   const de = locale === "de";
+  const errors = useTranslations("errors");
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -32,10 +34,7 @@ export function AuthForm({
           })
         : await signIn.email({ email, password });
     if (result.error) {
-      setError(
-        result.error.message ??
-          (de ? "Anmeldung fehlgeschlagen." : "Authentication failed."),
-      );
+      setError(errors("authenticationFailed"));
       setPending(false);
       return;
     }

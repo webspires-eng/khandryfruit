@@ -10,10 +10,11 @@ export default function ErrorPage({
       <p className="eyebrow">500</p>
       <h1>Etwas ist schiefgelaufen</h1>
       <p>
-        Something went wrong. No sensitive technical details have been shown.
+        Die Seite konnte nicht geladen werden. Es werden keine vertraulichen
+        technischen Details angezeigt.
       </p>
       <button className="button" onClick={reset}>
-        Erneut versuchen / Try again
+        Erneut versuchen
       </button>
     </main>
   );
