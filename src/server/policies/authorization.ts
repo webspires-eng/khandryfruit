@@ -7,13 +7,6 @@ import type { AdminArea } from "@/config/admin";
 import { canAccessAdmin } from "@/config/admin";
 import { auth } from "@/lib/auth/auth";
 
-const ADMIN_ROLES = new Set([
-  "CONTENT_EDITOR",
-  "ORDER_MANAGER",
-  "ADMIN",
-  "SUPER_ADMIN",
-]);
-
 export async function getSession() {
   return auth.api.getSession({ headers: await headers() });
 }
@@ -44,8 +37,4 @@ export async function requireAdmin(
   )
     forbidden();
   return session;
-}
-
-export function isAdminRole(role: string) {
-  return ADMIN_ROLES.has(role);
 }

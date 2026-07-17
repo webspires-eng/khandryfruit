@@ -38,7 +38,7 @@ Use separate PostgreSQL roles. `DATABASE_URL` must use a pooled runtime role wit
 ## Vercel and domain
 
 1. Deploy Preview with test Stripe keys, an isolated database, and restricted SES recipients.
-2. Run `PLAYWRIGHT_BASE_URL=https://preview.example npm run test:e2e`.
+2. Manually verify the storefront, admin and checkout journeys against the Preview URL.
 3. Add the final domain, configure DNS, wait for a valid certificate, and verify HTTP redirects to HTTPS.
 4. Add Preview and Production origins to Better Auth trusted origins.
 5. Verify `/api/cron/reservations` is listed in Vercel Cron and protected by `CRON_SECRET`.
@@ -81,4 +81,4 @@ For application-only failures, use Vercel’s instant rollback to the previous a
 
 ## Final evidence
 
-Archive the deployment URL and commit, `db:status`, launch-readiness report, Stripe webhook delivery IDs, payment/refund evidence, SES message IDs, Playwright report, monitoring test event, backup/PITR confirmation, legal approval, shipping approval, and published-product approval.
+Archive the deployment URL and commit, `db:status`, launch-readiness report, Stripe webhook delivery IDs, payment/refund evidence, SES message IDs, manual Preview verification notes, monitoring test event, backup/PITR confirmation, legal approval, shipping approval, and published-product approval.

@@ -256,7 +256,7 @@ export async function updateProductAction(formData: FormData) {
   }
 }
 
-export async function setProductStatusAction(formData: FormData) {
+async function setProductStatusAction(formData: FormData) {
   const session = await requireAdmin("products");
   try {
     const productId = z.string().min(1).parse(formData.get("productId"));

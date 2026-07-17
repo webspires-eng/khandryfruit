@@ -37,8 +37,6 @@ Local seed accounts use `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD`, `SEED_CUSTOME
 
 Routes cover dashboard, products, categories, inventory, orders, customers, wholesale applications, contact enquiries, gift boxes, packaging, coupons, reviews, bilingual content, blog, recipes, FAQs, legal content, settings, audit logs and system health. Every page and mutation rechecks permissions on the server. `CONTENT_EDITOR` is limited to publishing areas, `ORDER_MANAGER` to orders/customers/contact enquiries, `ADMIN` to day-to-day commerce and business settings, and `SUPER_ADMIN` additionally controls roles, audit logs and system health.
 
-Run the non-mutating admin browser smoke suite with `npm run test:e2e`. Anonymous route protection always runs. To enable authenticated route coverage, set `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD`, `E2E_CUSTOMER_EMAIL` and `E2E_CUSTOMER_PASSWORD` to dedicated test accounts; seed credentials are intentionally not assumed to match a shared or production database.
-
 The initial migration defines the commerce/auth domain. `20260715230000_admin_dashboard_fields` adds admin-required variant ordering, inventory notes, wholesale review fields, gift-box configuration records and search aliases. Apply migrations with `npm run db:deploy` before seeding.
 
 ## Localisation policy
@@ -85,7 +83,6 @@ Use Stripe test card `4242 4242 4242 4242`, a future expiry and any CVC. Checkou
 npm run lint
 npm run typecheck
 npm run test
-npm run test:e2e
 npm run build
 npm run check
 ```

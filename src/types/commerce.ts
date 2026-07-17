@@ -56,5 +56,3 @@ export type CartCalculation = {
   totalCents: number;
   currency: "EUR";
 };
-
-export type Localised = { locale: AppLocale };

@@ -18,9 +18,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: true,
-  // Dev-only: Playwright drives the app via 127.0.0.1; without this Next
-  // blocks /_next dev resources for that origin and hydration never runs.
-  allowedDevOrigins: ["127.0.0.1"],
   experimental: {
     authInterrupts: true,
     serverActions: {

@@ -15,8 +15,7 @@ export function variantCapacityUnits(weightGrams: number): number {
   return weightGrams >= 1000 ? 2 : 1;
 }
 
-const shouldUseFallback = () =>
-  !env.DATABASE_URL || process.env.E2E_USE_DEVELOPMENT_CATALOGUE === "1";
+const shouldUseFallback = () => !env.DATABASE_URL;
 
 /** True when gift-box data comes from the development fallback, not the DB. */
 export const giftBoxFallbackActive = () => shouldUseFallback();

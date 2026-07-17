@@ -1,6 +1,5 @@
 import "server-only";
 
-import { headers } from "next/headers";
 import type { AppLocale } from "@/config/site";
 import { db } from "@/lib/db/client";
 import { env } from "@/lib/env";
@@ -329,7 +328,7 @@ export async function getProducts(
     bestseller?: boolean;
   },
 ) {
-  if (!env.DATABASE_URL || (await developmentCatalogueRequested()))
+  if (!env.DATABASE_URL)
     return filterDevelopment(
       developmentProducts.map((p) => localiseDevelopment(p, locale)),
       options,
@@ -439,16 +438,6 @@ export async function getProducts(
       developmentProducts.map((p) => localiseDevelopment(p, locale)),
       options,
     );
-  }
-}
-
-async function developmentCatalogueRequested() {
-  if (env.NODE_ENV === "production") return false;
-  if (process.env.E2E_USE_DEVELOPMENT_CATALOGUE === "1") return true;
-  try {
-    return (await headers()).get("x-kdf-e2e-catalogue") === "1";
-  } catch {
-    return false;
   }
 }
 

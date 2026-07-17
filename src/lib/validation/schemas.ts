@@ -148,8 +148,6 @@ export const giftBoxConfigurationSchema = z.object({
     .max(24),
 });
 
-export type ContactInput = z.infer<typeof contactSchema>;
-export type WholesaleApplicationInput = z.infer<typeof wholesaleApplicationSchema>;
 export type GiftBoxConfigurationInput = z.infer<typeof giftBoxConfigurationSchema>;
 
 export type ActionResult<T> =

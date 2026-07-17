@@ -2,7 +2,5 @@
 node_modules
 src/generated
 coverage
-playwright-report
-test-results
 prisma/migrations
 package-lock.json

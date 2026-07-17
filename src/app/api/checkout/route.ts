@@ -32,12 +32,7 @@ export async function POST(request: Request) {
         429,
         rate.retryAfterSeconds,
       );
-    if (
-      !env.DATABASE_URL ||
-      process.env.E2E_USE_DEVELOPMENT_CATALOGUE === "1" ||
-      (env.NODE_ENV !== "production" &&
-        request.headers.get("x-kdf-e2e-catalogue") === "1")
-    )
+    if (!env.DATABASE_URL)
       return fail(
         "DATABASE_NOT_CONFIGURED",
         "Connect Supabase before creating checkout sessions.",
