@@ -6,9 +6,11 @@ import { HeaderSearch } from "@/features/search/header-search";
 import { Link } from "@/i18n/navigation";
 import { CartLink } from "./cart-link";
 import { LanguageSwitcher } from "./language-switcher";
+import { MobileNav } from "./mobile-nav";
 
 export async function Header({ locale }: { locale: AppLocale }) {
   const t = await getTranslations("nav");
+  const de = locale === "de";
   const nav = [
     ["/shop", t("shop")],
     ["/bestsellers", t("bestsellers")],
@@ -18,15 +20,28 @@ export async function Header({ locale }: { locale: AppLocale }) {
     ["/recipes", t("recipes")],
     [localizedPath("contact", locale), t("contact")],
   ] as const;
+  // One definition renders both the desktop bar and the mobile drawer, so the
+  // two can never drift apart.
+  const links = nav.map(([href, label]) => (
+    <Link href={href} locale={locale} key={href}>
+      {label}
+    </Link>
+  ));
   return (
     <>
       <div className="announcement">
-        {locale === "de"
+        {de
           ? "Sichere Zahlung · Sorgfältig verpackt · Support per WhatsApp"
           : "Secure payment · Packed with care · WhatsApp support"}
       </div>
       <header className="site-header">
         <div className="header-inner">
+          <MobileNav
+            label={de ? "Menü" : "Menu"}
+            closeLabel={de ? "Menü schließen" : "Close menu"}
+          >
+            {links}
+          </MobileNav>
           <Link
             href="/"
             locale={locale}
@@ -41,13 +56,9 @@ export async function Header({ locale }: { locale: AppLocale }) {
           </Link>
           <nav
             className="desktop-nav"
-            aria-label={locale === "de" ? "Hauptnavigation" : "Main navigation"}
+            aria-label={de ? "Hauptnavigation" : "Main navigation"}
           >
-            {nav.map(([href, label]) => (
-              <Link href={href} locale={locale} key={href}>
-                {label}
-              </Link>
-            ))}
+            {links}
           </nav>
           <div className="header-actions">
             <HeaderSearch />

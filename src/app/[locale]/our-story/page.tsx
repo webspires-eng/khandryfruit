@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { isLocale } from "@/config/site";
@@ -59,12 +60,39 @@ export default async function OurStoryPage({
     <main>
       <section className="story-section">
         <div className="story-grid container">
-          <div className="origin-map" aria-hidden="true">
-            <span className="map-shape" />
-            <span className="pin pin-1">Kabul</span>
-            <span className="pin pin-2">Kandahar</span>
-            <span className="pin pin-3">Logar</span>
-            <span className="pin pin-4">Shamali</span>
+          <div className="story-photos">
+            {(
+              [
+                [
+                  "/images/products/figs.webp",
+                  "Kandahar",
+                  de ? "Feigen" : "Figs",
+                ],
+                [
+                  "/images/products/black-raisins.webp",
+                  "Kabul",
+                  de ? "Rosinen" : "Raisins",
+                ],
+                [
+                  "/images/products/white-mulberries.webp",
+                  "Shamali",
+                  de ? "Maulbeeren" : "Mulberries",
+                ],
+              ] as const
+            ).map(([src, region, fruit]) => (
+              <figure key={region}>
+                <Image
+                  src={src}
+                  alt={`${fruit} — ${region}`}
+                  fill
+                  sizes="22vw"
+                />
+                <figcaption>
+                  <strong>{fruit}</strong>
+                  <small>{region}</small>
+                </figcaption>
+              </figure>
+            ))}
           </div>
           <div>
             <p className="eyebrow gold">Khan Dry Fruit · Duisburg</p>

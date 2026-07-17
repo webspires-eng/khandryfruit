@@ -290,6 +290,29 @@ const navSections: {
     ],
   },
   {
+    title: "Publishing",
+    items: [
+      {
+        area: "content",
+        label: "Content pages",
+        href: "/admin/content" as Route,
+        description: "Bilingual storefront pages and their blocks.",
+      },
+      {
+        area: "blog",
+        label: "Blog",
+        href: "/admin/blog" as Route,
+        description: "Articles and editorial posts.",
+      },
+      {
+        area: "recipes",
+        label: "Recipes",
+        href: "/admin/recipes" as Route,
+        description: "Recipe records shown on the storefront.",
+      },
+    ],
+  },
+  {
     title: "Legal & content",
     items: [
       {

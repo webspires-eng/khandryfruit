@@ -31,16 +31,14 @@ export default async function HomePage({
       de ? "rosinen" : "raisins",
       de ? "Rosinen" : "Raisins",
       de
-        ? "Von dunkel und weich bis hell und fein."
-        : "From dark and soft to light and delicate.",
+        ? "Dunkel und weich oder hell und fein – aus Kabul."
+        : "Dark and soft, or light and delicate — from Kabul.",
       "/images/products/black-raisins.webp",
     ],
     [
       de ? "feigen" : "figs",
       de ? "Feigen" : "Figs",
-      de
-        ? "Bestätigtes Herkunftsbeispiel: Kandahar."
-        : "Confirmed sourcing example: Kandahar.",
+      de ? "Aus Kandahar." : "From Kandahar.",
       "/images/products/figs.webp",
     ],
     [
@@ -53,8 +51,8 @@ export default async function HomePage({
       "geschenkboxen",
       de ? "Geschenkboxen" : "Gift boxes",
       de
-        ? "Für besondere Momente zusammengestellt."
-        : "Composed for meaningful occasions.",
+        ? "Stellen Sie Ihre eigene zusammen."
+        : "Put together one of your own.",
       "/images/products/pistachios.webp",
     ],
   ];
@@ -91,27 +89,20 @@ export default async function HomePage({
               </span>
             </div>
           </div>
-          <div
-            className="hero-art"
-            role="img"
-            aria-label={
-              de
-                ? "Anordnung ausgewählter Trockenfrüchte in warmen Naturtönen"
-                : "Arrangement of selected dry fruits in warm natural tones"
-            }
-          >
-            <div className="hero-product-grid" aria-hidden="true">
-              {[
-                "/images/products/apricots.webp",
-                "/images/products/green-raisins.webp",
-                "/images/products/pistachios.webp",
-                "/images/products/black-mulberries.webp",
-              ].map((src) => (
-                <span key={src}>
-                  <Image src={src} alt="" fill sizes="18vw" />
-                </span>
-              ))}
-            </div>
+          <div className="hero-art">
+            <figure className="hero-photo">
+              <Image
+                src="/images/products/apricots.webp"
+                alt={
+                  de
+                    ? "Getrocknete afghanische Aprikosen in einer Schale"
+                    : "Dried Afghan apricots in a bowl"
+                }
+                fill
+                sizes="(max-width: 1100px) 100vw, 45vw"
+                priority
+              />
+            </figure>
             <div className="hero-label">
               <small>{de ? "Ausgewählt in" : "Selected in"}</small>
               <strong>Duisburg</strong>
@@ -124,29 +115,33 @@ export default async function HomePage({
           <div>
             <Leaf />
             <span>
-              <strong>{de ? "Afghanische Auswahl" : "Afghan selection"}</strong>
+              <strong>
+                {de ? "Wir nennen die Region" : "We name the region"}
+              </strong>
               <small>
                 {de
-                  ? "Bestätigte Regionen klar benannt"
-                  : "Confirmed regions clearly named"}
+                  ? "Kabul, Kandahar, Logar, Shamali"
+                  : "Kabul, Kandahar, Logar, Shamali"}
               </small>
             </span>
           </div>
           <div>
             <CreditCard />
             <span>
-              <strong>{de ? "Sicher bezahlen" : "Secure payment"}</strong>
-              <small>Stripe Checkout</small>
+              <strong>{de ? "Sicher bezahlen" : "Pay securely"}</strong>
+              <small>
+                {de ? "Bezahlung über Stripe" : "Payment via Stripe"}
+              </small>
             </span>
           </div>
           <div>
             <Box />
             <span>
-              <strong>{de ? "Geschenkfähig" : "Gift-worthy"}</strong>
+              <strong>{de ? "Zum Verschenken" : "Made to be given"}</strong>
               <small>
                 {de
-                  ? "Warme, wertige Präsentation"
-                  : "Warm, premium presentation"}
+                  ? "Geschenkboxen, von Hand zusammengestellt"
+                  : "Gift boxes, put together to order"}
               </small>
             </span>
           </div>
@@ -179,7 +174,6 @@ export default async function HomePage({
                 sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 25vw"
                 className="category-image"
               />
-              <span className="category-number">0{index + 1}</span>
               <div>
                 <h3>{name}</h3>
                 <p>{description}</p>
@@ -200,8 +194,8 @@ export default async function HomePage({
             </div>
             <p className="section-note">
               {de
-                ? "Die sichtbaren Artikel sind Entwicklungsentwürfe bis alle Pflichtdaten freigegeben sind."
-                : "Visible items remain development drafts until mandatory data is approved."}
+                ? "An den letzten Angaben zu diesen Früchten arbeiten wir noch – sobald alles geprüft ist, sind sie bestellbar."
+                : "We’re still finishing the details on these — once everything is checked, they’re ready to order."}
             </p>
           </div>
           <div className="product-grid">
@@ -213,26 +207,55 @@ export default async function HomePage({
       </section>
       <section className="story-section">
         <div className="story-grid container">
-          <div className="origin-map" aria-hidden="true">
-            <span className="map-shape" />
-            <span className="pin pin-1">Kabul</span>
-            <span className="pin pin-2">Kandahar</span>
-            <span className="pin pin-3">Logar</span>
-            <span className="pin pin-4">Shamali</span>
+          {/* Real photography of the fruit we can actually name a region for,
+              rather than an illustrated map of places we only label. */}
+          <div className="story-photos">
+            {(
+              [
+                [
+                  "/images/products/figs.webp",
+                  "Kandahar",
+                  de ? "Feigen" : "Figs",
+                ],
+                [
+                  "/images/products/black-raisins.webp",
+                  "Kabul",
+                  de ? "Rosinen" : "Raisins",
+                ],
+                [
+                  "/images/products/white-mulberries.webp",
+                  "Shamali",
+                  de ? "Maulbeeren" : "Mulberries",
+                ],
+              ] as const
+            ).map(([src, region, fruit]) => (
+              <figure key={region}>
+                <Image
+                  src={src}
+                  alt={`${fruit} — ${region}`}
+                  fill
+                  sizes="22vw"
+                />
+                <figcaption>
+                  <strong>{fruit}</strong>
+                  <small>{region}</small>
+                </figcaption>
+              </figure>
+            ))}
           </div>
           <div>
             <p className="eyebrow gold">
-              {de ? "Herkunft mit Klarheit" : "Sourcing with clarity"}
+              {de ? "Woher sie kommen" : "Where it comes from"}
             </p>
             <h2>{t("storyTitle")}</h2>
             <p>{t("storyBody")}</p>
             <p>
               {de
-                ? "Wir veröffentlichen keine Grower-, Bio- oder Fair-Trade-Behauptung ohne geprüften Nachweis."
-                : "We do not publish grower, organic or fair-trade claims without verified evidence."}
+                ? "Bio, Fair Trade, direkt vom Bauern – solche Worte stehen hier nur, wenn wir sie belegen können. Können wir es nicht, schreiben wir es nicht."
+                : "Organic, fair trade, straight from the grower — those words only appear here if we can prove them. If we can’t, we don’t print them."}
             </p>
             <Link className="button light" href="/sourcing" locale={locale}>
-              {de ? "Herkunft entdecken" : "Explore sourcing"}{" "}
+              {de ? "Mehr zur Herkunft" : "More on sourcing"}{" "}
               <ArrowRight size={18} />
             </Link>
           </div>
@@ -246,35 +269,34 @@ export default async function HomePage({
           </div>
           <div className="quality-list">
             <div>
-              <strong>01</strong>
               <span>
-                <b>{de ? "Fakten vor Behauptungen" : "Facts before claims"}</b>
+                <b>{de ? "Lieber weniger sagen" : "We’d rather say less"}</b>
                 <small>
                   {de
-                    ? "Nur verifizierte Produktangaben werden veröffentlicht."
-                    : "Only verified product information is published."}
+                    ? "Was auf der Seite steht, können wir belegen. Den Rest lassen wir weg."
+                    : "If it’s written here, we can back it up. The rest we leave out."}
                 </small>
               </span>
             </div>
             <div>
-              <strong>02</strong>
               <span>
-                <b>{de ? "Klare Pflichtangaben" : "Clear food information"}</b>
+                <b>
+                  {de ? "Alles auf dem Etikett" : "Everything on the label"}
+                </b>
                 <small>
                   {de
-                    ? "Zutaten, Allergene, Herkunft und Nährwerte gehören zum Freigabeprozess."
-                    : "Ingredients, allergens, origin and nutrition are part of publishing."}
+                    ? "Zutaten, Allergene, Herkunft und Nährwerte – bevor eine Frucht in den Shop kommt."
+                    : "Ingredients, allergens, origin and nutrition — before a fruit reaches the shop."}
                 </small>
               </span>
             </div>
             <div>
-              <strong>03</strong>
               <span>
-                <b>{de ? "Sicherer Handel" : "Reliable commerce"}</b>
+                <b>{de ? "Sicher bezahlen" : "Checkout you can trust"}</b>
                 <small>
                   {de
-                    ? "Preise und Bestand werden serverseitig geprüft."
-                    : "Prices and stock are verified server-side."}
+                    ? "Bezahlung über Stripe. Preise und Verfügbarkeit prüfen wir bei jeder Bestellung."
+                    : "Payment through Stripe. We check prices and availability on every order."}
                 </small>
               </span>
             </div>

@@ -13,18 +13,18 @@
     "cart": "Cart"
   },
   "home": {
-    "eyebrow": "Selected specialities · Duisburg",
-    "title": "Premium Afghan Dry Fruits",
-    "subtitle": "Discover carefully selected raisins, figs, apricots, mulberries and other Afghan specialities, packed with care and delivered across Germany.",
-    "shopCta": "Shop Now",
-    "sourceCta": "Discover Our Sourcing",
-    "categories": "Explore by variety",
-    "bestsellers": "Customer favourites",
-    "storyTitle": "Four regions. One considered selection.",
-    "storyBody": "Our confirmed sourcing examples span figs from Kandahar, peaches from Logar, raisins from Kabul and mulberries from Shamali.",
-    "qualityTitle": "What matters to us",
+    "eyebrow": "Afghan specialities · Duisburg",
+    "title": "A taste of Afghanistan, packed in Duisburg",
+    "subtitle": "Raisins from Kabul, figs from Kandahar, mulberries from Shamali. We tell you where each one comes from — and we say nothing we cannot stand behind.",
+    "shopCta": "Shop the range",
+    "sourceCta": "Where it comes from",
+    "categories": "Pick your variety",
+    "bestsellers": "What people reach for",
+    "storyTitle": "We can name the region on every one of these",
+    "storyBody": "Figs from Kandahar. Peaches from Logar. Raisins from Kabul. Mulberries from Shamali. Four regions we can point to — not a vague label that says \"imported\".",
+    "qualityTitle": "How we do things",
     "newsletterTitle": "Notes from our pantry",
-    "newsletterBody": "Receive product arrivals, recipes and gifting ideas. Optional subscription, unsubscribe at any time."
+    "newsletterBody": "New arrivals, recipes and gifting ideas — a few times a year, never more. Unsubscribe whenever you like."
   },
   "common": {
     "from": "from",

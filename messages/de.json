@@ -13,18 +13,18 @@
     "cart": "Warenkorb"
   },
   "home": {
-    "eyebrow": "Ausgewählte Spezialitäten · Duisburg",
-    "title": "Premium afghanische Trockenfrüchte",
-    "subtitle": "Entdecken Sie sorgfältig ausgewählte Rosinen, Feigen, Aprikosen, Maulbeeren und weitere afghanische Spezialitäten – mit Sorgfalt verpackt und deutschlandweit geliefert.",
-    "shopCta": "Jetzt einkaufen",
-    "sourceCta": "Unsere Herkunft entdecken",
-    "categories": "Nach Sorte entdecken",
-    "bestsellers": "Kundenlieblinge",
-    "storyTitle": "Vier Regionen. Eine durchdachte Auswahl.",
-    "storyBody": "Unsere bestätigten Herkunftsbeispiele umfassen Feigen aus Kandahar, Pfirsiche aus Logar, Rosinen aus Kabul und Maulbeeren aus Shamali.",
-    "qualityTitle": "Worauf wir Wert legen",
+    "eyebrow": "Afghanische Spezialitäten · Duisburg",
+    "title": "Ein Stück Afghanistan, verpackt in Duisburg",
+    "subtitle": "Rosinen aus Kabul, Feigen aus Kandahar, Maulbeeren aus Shamali. Wir sagen Ihnen, woher jede Frucht kommt – und behaupten nichts, wofür wir nicht geradestehen können.",
+    "shopCta": "Zum Sortiment",
+    "sourceCta": "Woher sie kommen",
+    "categories": "Nach Sorte stöbern",
+    "bestsellers": "Wonach am häufigsten gegriffen wird",
+    "storyTitle": "Bei jeder einzelnen können wir die Region nennen",
+    "storyBody": "Feigen aus Kandahar. Pfirsiche aus Logar. Rosinen aus Kabul. Maulbeeren aus Shamali. Vier Regionen, die wir benennen können – statt eines vagen Hinweises auf „importiert“.",
+    "qualityTitle": "Wie wir arbeiten",
     "newsletterTitle": "Neues aus unserer Vorratskammer",
-    "newsletterBody": "Erhalten Sie Produktneuheiten, Rezepte und Geschenkideen. Optionales Abo, jederzeit abbestellbar."
+    "newsletterBody": "Neuheiten, Rezepte und Geschenkideen – ein paar Mal im Jahr, nicht öfter. Jederzeit abbestellbar."
   },
   "common": {
     "from": "ab",

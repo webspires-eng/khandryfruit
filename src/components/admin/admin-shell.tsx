@@ -58,10 +58,11 @@ const nav: Record<
   "system-health": { label: "System health", icon: LayoutGrid },
 };
 
-// High-frequency operational items only. Structural/configuration areas
-// (categories, packaging, coupons, legal, FAQs, media, audit logs, system
-// health) are reachable from the Settings page instead of the sidebar.
-// Their routes are unchanged, so existing links and bookmarks still resolve.
+// High-frequency operational items only. Structural, publishing and
+// configuration areas (categories, packaging, coupons, content, blog, recipes,
+// legal, FAQs, media, audit logs, system health) are reachable from the
+// Settings page instead of the sidebar. Their routes are unchanged, so
+// existing links and bookmarks still resolve.
 const navGroups: Array<{
   label: string;
   areas: AdminArea[];
@@ -77,10 +78,6 @@ const navGroups: Array<{
   {
     label: "Customers",
     areas: ["customers", "wholesale", "contact-enquiries", "reviews"],
-  },
-  {
-    label: "Publishing",
-    areas: ["content", "blog", "recipes"],
   },
   {
     label: "Workspace",

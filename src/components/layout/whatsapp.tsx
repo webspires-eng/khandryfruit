@@ -1,6 +1,6 @@
-import { MessageCircle } from "lucide-react";
 import type { AppLocale } from "@/config/site";
 import { siteConfig } from "@/config/site";
+import { WhatsAppIcon } from "./brand-icons";
 
 export function WhatsAppButton({ locale }: { locale: AppLocale }) {
   const message =
@@ -19,8 +19,7 @@ export function WhatsAppButton({ locale }: { locale: AppLocale }) {
           : "Contact Khan Dry Fruit on WhatsApp (opens a new tab)"
       }
     >
-      <MessageCircle size={22} />
-      <span>WhatsApp</span>
+      <WhatsAppIcon size={26} />
     </a>
   );
 }
