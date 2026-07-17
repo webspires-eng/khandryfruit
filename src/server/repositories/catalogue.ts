@@ -10,313 +10,274 @@ import {
 } from "@/lib/i18n/content";
 import type { CatalogueProduct } from "@/types/commerce";
 
-const developmentProducts: CatalogueProduct[] = [
+type DevelopmentProduct = {
+  key: string;
+  nameDe: string;
+  nameEn: string;
+  slugDe: string;
+  slugEn: string;
+  categoryDe: string;
+  categoryEn: string;
+  categorySlugDe: string;
+  categorySlugEn: string;
+  image: string;
+  altDe: string;
+  altEn: string;
+  priceCents: number;
+  bestseller?: boolean;
+};
+
+const developmentCatalogue: DevelopmentProduct[] = [
   {
-    id: "dev-black-raisins",
-    slug: "schwarze-rosinen",
-    name: "Schwarze Rosinen",
-    shortDescription:
-      "Dunkle Rosinen aus Kabul mit weicher Textur und ausgewogenem Aroma.",
-    description:
-      "Ein Entwicklungsbeispiel auf Basis der bestätigten Herkunft Kabul. Produkt- und Lebensmitteldaten müssen vor Veröffentlichung geprüft werden.",
-    ingredients: placeholderCopy.de.ingredients,
-    allergenStatement: placeholderCopy.de.allergens,
-    storageInstructions: placeholderCopy.de.storage,
-    originCountry: "Afghanistan",
-    originRegion: "Kabul",
-    image: "/images/product-black-raisins.jpg",
-    imageAlt: "Schwarze Rosinen in einer kleinen Schale",
-    category: "Rosinen",
-    categorySlug: "rosinen",
-    featured: true,
+    key: "apricots",
+    nameDe: "Aprikosen",
+    nameEn: "Apricots",
+    slugDe: "aprikosen",
+    slugEn: "apricots",
+    categoryDe: "Aprikosen",
+    categoryEn: "Apricots",
+    categorySlugDe: "aprikosen",
+    categorySlugEn: "apricots",
+    image: "/images/products/apricots.webp",
+    altDe: "Reife Aprikosen in einer blauen Schale",
+    altEn: "Ripe apricots in a blue bowl",
+    priceCents: 999,
     bestseller: true,
+  },
+  {
+    key: "figs",
+    nameDe: "Feigen",
+    nameEn: "Figs",
+    slugDe: "feigen",
+    slugEn: "figs",
+    categoryDe: "Feigen",
+    categoryEn: "Figs",
+    categorySlugDe: "feigen",
+    categorySlugEn: "figs",
+    image: "/images/products/figs.webp",
+    altDe: "Getrocknete Feigen in einer rustikalen Schale",
+    altEn: "Dried figs in a rustic bowl",
+    priceCents: 1299,
+    bestseller: true,
+  },
+  {
+    key: "mangoes",
+    nameDe: "Mangos",
+    nameEn: "Mangoes",
+    slugDe: "mangos",
+    slugEn: "mangoes",
+    categoryDe: "Mangos",
+    categoryEn: "Mangoes",
+    categorySlugDe: "mangos",
+    categorySlugEn: "mangoes",
+    image: "/images/products/mangoes.webp",
+    altDe: "Reife Mangos in einem Korb",
+    altEn: "Ripe mangoes in a basket",
+    priceCents: 1199,
+  },
+  {
+    key: "black-raisins",
+    nameDe: "Schwarze Rosinen",
+    nameEn: "Black Raisins",
+    slugDe: "schwarze-rosinen",
+    slugEn: "black-raisins",
+    categoryDe: "Rosinen",
+    categoryEn: "Raisins",
+    categorySlugDe: "rosinen",
+    categorySlugEn: "raisins",
+    image: "/images/products/black-raisins.webp",
+    altDe: "Nahaufnahme schwarzer Rosinen",
+    altEn: "Close-up of black raisins",
+    priceCents: 899,
+    bestseller: true,
+  },
+  {
+    key: "green-raisins",
+    nameDe: "Grüne Rosinen",
+    nameEn: "Green Raisins",
+    slugDe: "gruene-rosinen",
+    slugEn: "green-raisins",
+    categoryDe: "Rosinen",
+    categoryEn: "Raisins",
+    categorySlugDe: "rosinen",
+    categorySlugEn: "raisins",
+    image: "/images/products/green-raisins.webp",
+    altDe: "Grüne Rosinen in einem Glasgefäß",
+    altEn: "Green raisins in a glass jar",
+    priceCents: 999,
+  },
+  {
+    key: "brown-raisins",
+    nameDe: "Braune Rosinen",
+    nameEn: "Brown Raisins",
+    slugDe: "braune-rosinen",
+    slugEn: "brown-raisins",
+    categoryDe: "Rosinen",
+    categoryEn: "Raisins",
+    categorySlugDe: "rosinen",
+    categorySlugEn: "raisins",
+    image: "/images/products/brown-raisins.webp",
+    altDe: "Braune Rosinen in warmer Nahaufnahme",
+    altEn: "Brown raisins in a warm close-up",
+    priceCents: 949,
+  },
+  {
+    key: "chickpeas",
+    nameDe: "Kichererbsen",
+    nameEn: "Chickpeas",
+    slugDe: "kichererbsen",
+    slugEn: "chickpeas",
+    categoryDe: "Hülsenfrüchte",
+    categoryEn: "Pulses",
+    categorySlugDe: "huelsenfruechte",
+    categorySlugEn: "pulses",
+    image: "/images/products/chickpeas.webp",
+    altDe: "Kichererbsen in einer dunklen Schale",
+    altEn: "Chickpeas in a dark bowl",
+    priceCents: 699,
+  },
+  {
+    key: "almonds",
+    nameDe: "Mandeln",
+    nameEn: "Almonds",
+    slugDe: "mandeln",
+    slugEn: "almonds",
+    categoryDe: "Nüsse",
+    categoryEn: "Nuts",
+    categorySlugDe: "nuesse",
+    categorySlugEn: "nuts",
+    image: "/images/products/almonds.webp",
+    altDe: "Ganze Mandeln in Nahaufnahme",
+    altEn: "Whole almonds in close-up",
+    priceCents: 1399,
+    bestseller: true,
+  },
+  {
+    key: "pistachios",
+    nameDe: "Pistazien",
+    nameEn: "Pistachios",
+    slugDe: "pistazien",
+    slugEn: "pistachios",
+    categoryDe: "Nüsse",
+    categoryEn: "Nuts",
+    categorySlugDe: "nuesse",
+    categorySlugEn: "nuts",
+    image: "/images/products/pistachios.webp",
+    altDe: "Pistazien in einer Keramikschale",
+    altEn: "Pistachios in a ceramic bowl",
+    priceCents: 1599,
+  },
+  {
+    key: "black-mulberries",
+    nameDe: "Schwarze Maulbeeren",
+    nameEn: "Black Mulberries",
+    slugDe: "schwarze-maulbeeren",
+    slugEn: "black-mulberries",
+    categoryDe: "Maulbeeren",
+    categoryEn: "Mulberries",
+    categorySlugDe: "maulbeeren",
+    categorySlugEn: "mulberries",
+    image: "/images/products/black-mulberries.webp",
+    altDe: "Schwarze Maulbeeren auf einem Teller",
+    altEn: "Black mulberries on a plate",
+    priceCents: 1199,
+  },
+  {
+    key: "white-mulberries",
+    nameDe: "Weiße Maulbeeren",
+    nameEn: "White Mulberries",
+    slugDe: "weisse-maulbeeren",
+    slugEn: "white-mulberries",
+    categoryDe: "Maulbeeren",
+    categoryEn: "Mulberries",
+    categorySlugDe: "maulbeeren",
+    categorySlugEn: "mulberries",
+    image: "/images/products/white-mulberries.webp",
+    altDe: "Weiße Maulbeeren in Nahaufnahme",
+    altEn: "White mulberries in close-up",
+    priceCents: 1099,
+  },
+  {
+    key: "jujubes",
+    nameDe: "Jujuben",
+    nameEn: "Jujubes",
+    slugDe: "jujuben",
+    slugEn: "jujubes",
+    categoryDe: "Jujuben",
+    categoryEn: "Jujubes",
+    categorySlugDe: "jujuben",
+    categorySlugEn: "jujubes",
+    image: "/images/products/jujubes.webp",
+    altDe: "Getrocknete rote Jujuben auf einem Teller",
+    altEn: "Dried red jujubes on a plate",
+    priceCents: 1099,
+  },
+  {
+    key: "cashews",
+    nameDe: "Cashewkerne",
+    nameEn: "Cashews",
+    slugDe: "cashewkerne",
+    slugEn: "cashews",
+    categoryDe: "Nüsse",
+    categoryEn: "Nuts",
+    categorySlugDe: "nuesse",
+    categorySlugEn: "nuts",
+    image: "/images/products/cashews.webp",
+    altDe: "Cashewkerne als flächige Nahaufnahme",
+    altEn: "Cashews arranged in a close-up",
+    priceCents: 1499,
+  },
+];
+
+function createDevelopmentProduct(
+  product: DevelopmentProduct,
+  locale: AppLocale,
+): CatalogueProduct {
+  const de = locale === "de";
+  const name = de ? product.nameDe : product.nameEn;
+  const unconfirmed = de ? "Noch zu bestätigen" : "To be confirmed";
+  return {
+    id: `dev-${product.key}`,
+    slug: de ? product.slugDe : product.slugEn,
+    name,
+    shortDescription: de
+      ? `${name} als sorgfältig präsentierter Entwurf für das Sortiment von Khan Dry Fruit.`
+      : `${name} presented as a carefully prepared draft for the Khan Dry Fruit range.`,
+    description: placeholderCopy[locale].productInformation,
+    ingredients: placeholderCopy[locale].ingredients,
+    allergenStatement: placeholderCopy[locale].allergens,
+    storageInstructions: placeholderCopy[locale].storage,
+    originCountry: unconfirmed,
+    originRegion: unconfirmed,
+    image: product.image,
+    imageAlt: de ? product.altDe : product.altEn,
+    category: de ? product.categoryDe : product.categoryEn,
+    categorySlug: de ? product.categorySlugDe : product.categorySlugEn,
+    featured: true,
+    bestseller: Boolean(product.bestseller),
     status: "DRAFT",
+    alternateSlugs: { de: product.slugDe, en: product.slugEn },
     variants: [
       {
-        id: "dev-black-500",
-        sku: "DEV-RAISIN-BLK-500",
+        id: `dev-${product.key}-500`,
+        sku: `DEV-${product.key.toUpperCase()}-500`,
         weightGrams: 500,
-        priceCents: 899,
+        priceCents: product.priceCents,
         vatRateBps: 700,
         available: 20,
         active: true,
       },
       {
-        id: "dev-black-1000",
-        sku: "DEV-RAISIN-BLK-1000",
+        id: `dev-${product.key}-1000`,
+        sku: `DEV-${product.key.toUpperCase()}-1000`,
         weightGrams: 1000,
-        priceCents: 1599,
+        priceCents: Math.round(product.priceCents * 1.8),
         vatRateBps: 700,
         available: 8,
         active: true,
       },
     ],
-  },
-  {
-    id: "dev-green-raisins",
-    slug: "gruene-rosinen",
-    name: "Grüne Rosinen",
-    shortDescription:
-      "Helle afghanische Rosinen aus Kabul, als Entwicklungsprodukt angelegt.",
-    description:
-      "Herkunftsbeispiel bestätigt; alle weiteren Angaben sind vor dem Verkauf zu vervollständigen.",
-    ingredients: placeholderCopy.de.ingredients,
-    allergenStatement: placeholderCopy.de.allergens,
-    storageInstructions: placeholderCopy.de.storage,
-    originCountry: "Afghanistan",
-    originRegion: "Kabul",
-    image: "/images/product-green-raisins.jpg",
-    imageAlt: "Grüne Rosinen auf hellem Untergrund",
-    category: "Rosinen",
-    categorySlug: "rosinen",
-    featured: true,
-    bestseller: false,
-    status: "DRAFT",
-    variants: [
-      {
-        id: "dev-green-500",
-        sku: "DEV-RAISIN-GRN-500",
-        weightGrams: 500,
-        priceCents: 999,
-        vatRateBps: 700,
-        available: 16,
-        active: true,
-      },
-    ],
-  },
-  {
-    id: "dev-figs",
-    slug: "afghanische-feigen",
-    name: "Afghanische Feigen",
-    shortDescription:
-      "Feigen aus Kandahar, für den Entwicklungskatalog angelegt.",
-    description:
-      "Die Region Kandahar ist bestätigt. Lebensmittel-, Preis- und Bilddaten benötigen die Kundenfreigabe.",
-    ingredients: placeholderCopy.de.ingredients,
-    allergenStatement: placeholderCopy.de.allergens,
-    storageInstructions: placeholderCopy.de.storage,
-    originCountry: "Afghanistan",
-    originRegion: "Kandahar",
-    image: "/images/product-figs.jpg",
-    imageAlt: "Getrocknete Feigen in natürlichem Licht",
-    category: "Feigen",
-    categorySlug: "feigen",
-    featured: true,
-    bestseller: true,
-    status: "DRAFT",
-    variants: [
-      {
-        id: "dev-fig-500",
-        sku: "DEV-FIG-500",
-        weightGrams: 500,
-        priceCents: 1299,
-        vatRateBps: 700,
-        available: 12,
-        active: true,
-      },
-    ],
-  },
-  {
-    id: "dev-mulberries",
-    slug: "getrocknete-maulbeeren",
-    name: "Getrocknete Maulbeeren",
-    shortDescription:
-      "Maulbeeren aus der Region Shamali, als Entwicklungsbeispiel.",
-    description:
-      "Die Herkunftsregion ist bestätigt; die übrigen Pflichtangaben sind noch nicht freigegeben.",
-    ingredients: placeholderCopy.de.ingredients,
-    allergenStatement: placeholderCopy.de.allergens,
-    storageInstructions: placeholderCopy.de.storage,
-    originCountry: "Afghanistan",
-    originRegion: "Shamali",
-    image: "/images/product-mulberries.jpg",
-    imageAlt: "Getrocknete Maulbeeren in einer Schale",
-    category: "Maulbeeren",
-    categorySlug: "maulbeeren",
-    featured: true,
-    bestseller: false,
-    status: "DRAFT",
-    variants: [
-      {
-        id: "dev-mulberry-500",
-        sku: "DEV-MUL-500",
-        weightGrams: 500,
-        priceCents: 1099,
-        vatRateBps: 700,
-        available: 10,
-        active: true,
-      },
-    ],
-  },
-  {
-    id: "dev-peaches",
-    slug: "getrocknete-pfirsiche",
-    name: "Getrocknete Pfirsiche",
-    shortDescription:
-      "Getrocknete Pfirsiche aus Logar, als Entwicklungsbeispiel.",
-    description:
-      "Logar ist als Herkunft bestätigt; Pflichtdaten und Verkaufspreis müssen noch geprüft werden.",
-    ingredients: placeholderCopy.de.ingredients,
-    allergenStatement: placeholderCopy.de.allergens,
-    storageInstructions: placeholderCopy.de.storage,
-    originCountry: "Afghanistan",
-    originRegion: "Logar",
-    image: "/images/product-peaches.jpg",
-    imageAlt: "Getrocknete Pfirsichstücke",
-    category: "Pfirsiche",
-    categorySlug: "pfirsiche",
-    featured: false,
-    bestseller: false,
-    status: "DRAFT",
-    variants: [
-      {
-        id: "dev-peach-500",
-        sku: "DEV-PEACH-500",
-        weightGrams: 500,
-        priceCents: 1199,
-        vatRateBps: 700,
-        available: 10,
-        active: true,
-      },
-    ],
-  },
-  {
-    id: "dev-apricots",
-    slug: "getrocknete-aprikosen",
-    name: "Getrocknete Aprikosen",
-    shortDescription:
-      "Sorgfältig präsentierte Aprikosen als unvollständiges Entwicklungsprodukt.",
-    description:
-      "Dieses Produkt ist noch nicht für den Verkauf freigegeben; Herkunft und Lebensmitteldaten fehlen.",
-    ingredients: placeholderCopy.de.ingredients,
-    allergenStatement: placeholderCopy.de.allergens,
-    storageInstructions: placeholderCopy.de.storage,
-    originCountry: "Afghanistan",
-    originRegion: placeholderCopy.de.productInformation,
-    image: "/images/product-apricots.jpg",
-    imageAlt: "Getrocknete Aprikosen",
-    category: "Aprikosen",
-    categorySlug: "aprikosen",
-    featured: false,
-    bestseller: false,
-    status: "DRAFT",
-    variants: [
-      {
-        id: "dev-apricot-500",
-        sku: "DEV-APRICOT-500",
-        weightGrams: 500,
-        priceCents: 999,
-        vatRateBps: 700,
-        available: 10,
-        active: true,
-      },
-    ],
-  },
-];
-
-function localiseDevelopment(
-  product: CatalogueProduct,
-  locale: AppLocale,
-): CatalogueProduct {
-  const english: Record<
-    string,
-    {
-      name: string;
-      slug: string;
-      shortDescription: string;
-      category: string;
-      categorySlug: string;
-      description: string;
-    }
-  > = {
-    "dev-black-raisins": {
-      name: "Black Raisins",
-      slug: "black-raisins",
-      shortDescription:
-        "Dark raisins from Kabul with a soft texture and balanced character.",
-      category: "Raisins",
-      categorySlug: "raisins",
-      description:
-        "The Kabul sourcing example is confirmed. Further product information requires approval.",
-    },
-    "dev-green-raisins": {
-      name: "Green Raisins",
-      slug: "green-raisins",
-      shortDescription:
-        "Light Afghan raisins from Kabul, created as a development product.",
-      category: "Raisins",
-      categorySlug: "raisins",
-      description:
-        "The Kabul sourcing example is confirmed. Further product information requires approval.",
-    },
-    "dev-figs": {
-      name: "Afghan Figs",
-      slug: "afghan-figs",
-      shortDescription:
-        "Figs from Kandahar, created for the development catalogue.",
-      category: "Figs",
-      categorySlug: "figs",
-      description:
-        "The Kandahar sourcing example is confirmed. Further product information requires approval.",
-    },
-    "dev-mulberries": {
-      name: "Dried Mulberries",
-      slug: "dried-mulberries",
-      shortDescription:
-        "Mulberries from the Shamali region, presented as a development example.",
-      category: "Mulberries",
-      categorySlug: "mulberries",
-      description:
-        "The Shamali sourcing example is confirmed. Further product information requires approval.",
-    },
-    "dev-peaches": {
-      name: "Dried Peaches",
-      slug: "dried-peaches",
-      shortDescription:
-        "Dried peaches from Logar, presented as a development example.",
-      category: "Peaches",
-      categorySlug: "peaches",
-      description:
-        "The Logar sourcing example is confirmed. Further product information requires approval.",
-    },
-    "dev-apricots": {
-      name: "Dried Apricots",
-      slug: "dried-apricots",
-      shortDescription:
-        "Carefully presented apricots as an incomplete development product.",
-      category: "Apricots",
-      categorySlug: "apricots",
-      description: placeholderCopy.en.productInformation,
-    },
   };
-  const values = english[product.id];
-  if (locale === "de")
-    return {
-      ...product,
-      alternateSlugs: {
-        de: product.slug,
-        ...(values ? { en: values.slug } : {}),
-      },
-    };
-  return values
-    ? {
-        ...product,
-        name: values.name,
-        slug: values.slug,
-        shortDescription: values.shortDescription,
-        description: values.description,
-        ingredients: placeholderCopy.en.ingredients,
-        allergenStatement: placeholderCopy.en.allergens,
-        storageInstructions: placeholderCopy.en.storage,
-        originRegion:
-          product.id === "dev-apricots"
-            ? placeholderCopy.en.productInformation
-            : product.originRegion,
-        category: values.category,
-        categorySlug: values.categorySlug,
-        alternateSlugs: { de: product.slug, en: values.slug },
-      }
-    : product;
 }
 
 export async function getProducts(
@@ -330,7 +291,9 @@ export async function getProducts(
 ) {
   if (!env.DATABASE_URL)
     return filterDevelopment(
-      developmentProducts.map((p) => localiseDevelopment(p, locale)),
+      developmentCatalogue.map((product) =>
+        createDevelopmentProduct(product, locale),
+      ),
       options,
     );
   try {
@@ -399,7 +362,9 @@ export async function getProducts(
           originCountry: record.countryOfOrigin ?? "",
           originRegion: record.regionOfOrigin ?? "",
           responsibleFoodBusiness: record.responsibleFoodBusiness ?? undefined,
-          image: record.images[0]?.url ?? "/images/product-placeholder.jpg",
+          image:
+            record.images[0]?.url ??
+            "/images/products/product-placeholder.webp",
           imageAlt:
             locale === "de"
               ? (record.images[0]?.altDe ?? tr.name)
@@ -435,7 +400,9 @@ export async function getProducts(
   } catch (error) {
     if (env.NODE_ENV === "production") throw error;
     return filterDevelopment(
-      developmentProducts.map((p) => localiseDevelopment(p, locale)),
+      developmentCatalogue.map((product) =>
+        createDevelopmentProduct(product, locale),
+      ),
       options,
     );
   }

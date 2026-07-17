@@ -1,6 +1,7 @@
 "use client";
 
 import { Minus, Plus } from "lucide-react";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -89,7 +90,10 @@ export function GiftBoxBuilder({
         .map(([variantId, quantity]) => ({ variantId, quantity })),
     [quantities],
   );
-  const totalQuantity = selections.reduce((sum, entry) => sum + entry.quantity, 0);
+  const totalQuantity = selections.reduce(
+    (sum, entry) => sum + entry.quantity,
+    0,
+  );
   const usedSlots = selections.reduce((sum, entry) => {
     const record = variantIndex.get(entry.variantId);
     return sum + entry.quantity * (record?.variant.capacityUnits ?? 1);
@@ -223,22 +227,31 @@ export function GiftBoxBuilder({
                   totalQuantity >= (template?.maxItems ?? 0);
                 return (
                   <div className="builder-product" key={variant.variantId}>
-                    <div>
-                      <strong>{product.name}</strong>
-                      <small>
-                        {variant.weightGrams >= 1000
-                          ? `${variant.weightGrams / 1000} kg`
-                          : `${variant.weightGrams} g`}
-                        {" · "}
-                        {formatMoney(variant.priceCents, locale)}
-                        {product.status === "DRAFT" &&
-                          ` · ${tCommon("draftBadge")}`}
-                      </small>
-                      {outOfStock && (
-                        <small className="field-error">
-                          {tCommon("outOfStock")}
+                    <div className="builder-product-copy">
+                      <Image
+                        src={product.image}
+                        alt={product.imageAlt}
+                        width={64}
+                        height={64}
+                        sizes="64px"
+                      />
+                      <span>
+                        <strong>{product.name}</strong>
+                        <small>
+                          {variant.weightGrams >= 1000
+                            ? `${variant.weightGrams / 1000} kg`
+                            : `${variant.weightGrams} g`}
+                          {" · "}
+                          {formatMoney(variant.priceCents, locale)}
+                          {product.status === "DRAFT" &&
+                            ` · ${tCommon("draftBadge")}`}
                         </small>
-                      )}
+                        {outOfStock && (
+                          <small className="field-error">
+                            {tCommon("outOfStock")}
+                          </small>
+                        )}
+                      </span>
                     </div>
                     <div className="builder-product-controls">
                       <div className="quantity">

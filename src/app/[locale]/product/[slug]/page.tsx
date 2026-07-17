@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ChevronRight, Heart, MessageCircle } from "lucide-react";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ProductPurchase } from "@/components/storefront/product-purchase";
@@ -36,6 +37,7 @@ export async function generateMetadata({
       title: product.name,
       description: product.shortDescription,
       locale: locale === "de" ? "de_DE" : "en_DE",
+      images: [{ url: product.image, alt: product.imageAlt }],
     },
   };
 }
@@ -63,6 +65,7 @@ export default async function ProductPage({
           description: product.shortDescription,
           sku: product.variants[0]?.sku,
           brand: { "@type": "Brand", name: "Khan Dry Fruit" },
+          image: product.image,
           offers: product.variants[0]
             ? {
                 "@type": "Offer",
@@ -90,15 +93,28 @@ export default async function ProductPage({
         <span>{product.name}</span>
       </nav>
       <div className="product-main">
-        <div className={`product-gallery fruit-${product.categorySlug}`}>
-          <span className="large-fruit-shape" />
-          <span className="gallery-origin">
-            {product.originRegion} · {product.originCountry}
-          </span>
+        <div className="product-gallery">
+          <Image
+            src={product.image}
+            alt={product.imageAlt}
+            fill
+            priority
+            sizes="(max-width: 900px) 100vw, 52vw"
+            className="product-gallery-image"
+          />
+          {(product.originRegion || product.originCountry) && (
+            <span className="gallery-origin">
+              {[product.originRegion, product.originCountry]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          )}
         </div>
         <div className="product-info">
           <p className="eyebrow">
-            {product.category} · {product.originRegion}
+            {[product.category, product.originRegion]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
           <h1>{product.name}</h1>
           <p className="product-lead">{product.shortDescription}</p>

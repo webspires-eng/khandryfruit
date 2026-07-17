@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { AppLocale } from "@/config/site";
 import { formatMoney, unitPricePerKg } from "@/lib/commerce/money";
@@ -23,14 +24,19 @@ export function ProductCard({
         className="product-visual"
         aria-label={product.name}
       >
-        <span
-          className={`fruit-shape fruit-${product.categorySlug}`}
-          aria-hidden="true"
+        <Image
+          src={product.image}
+          alt={product.imageAlt}
+          fill
+          sizes="(max-width: 680px) 100vw, (max-width: 1100px) 50vw, 25vw"
+          className="product-photo"
         />
         {product.status === "DRAFT" && (
           <span className="draft-badge">{t("draft")}</span>
         )}
-        <span className="origin-chip">{product.originRegion}</span>
+        {product.originRegion && (
+          <span className="origin-chip">{product.originRegion}</span>
+        )}
       </Link>
       <div className="product-card-body">
         <p className="eyebrow">{product.category}</p>

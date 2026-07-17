@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LockKeyhole } from "lucide-react";
+import Image from "next/image";
 import type { AppLocale } from "@/config/site";
 import { useCart } from "@/features/cart/store";
 import { formatMoney } from "@/lib/commerce/money";
@@ -125,10 +126,13 @@ export function CheckoutReview({ locale }: { locale: AppLocale }) {
         <h2>{de ? "Ihre Bestellung" : "Your order"}</h2>
         {items.map((item) => (
           <div className="review-line" key={item.variantId}>
-            <span>
-              {item.quantity}× {item.name}
-              <small>{item.weightGrams} g</small>
-            </span>
+            <div className="review-product">
+              <Image src={item.image} alt="" width={44} height={44} />
+              <span>
+                {item.quantity}× {item.name}
+                <small>{item.weightGrams} g</small>
+              </span>
+            </div>
             <strong>
               {formatMoney(item.unitPriceCents * item.quantity, locale)}
             </strong>

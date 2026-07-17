@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Route } from "next";
 import {
   BarChart3,
@@ -59,8 +59,8 @@ const nav: Record<
 };
 
 // High-frequency operational items only. Structural/configuration areas
-// (categories, packaging, gift boxes, coupons, legal, FAQs, media, audit logs,
-// system health) are reachable from the Settings page instead of the sidebar.
+// (categories, packaging, coupons, legal, FAQs, media, audit logs, system
+// health) are reachable from the Settings page instead of the sidebar.
 // Their routes are unchanged, so existing links and bookmarks still resolve.
 const navGroups: Array<{
   label: string;
@@ -72,7 +72,7 @@ const navGroups: Array<{
   },
   {
     label: "Catalogue",
-    areas: ["products"],
+    areas: ["products", "gift-boxes"],
   },
   {
     label: "Customers",
@@ -98,6 +98,7 @@ export function AdminShell({
   user: { name: string; email: string; role: string };
 }) {
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const segments = pathname.split("/").filter(Boolean);
@@ -106,6 +107,20 @@ export function AdminShell({
     router.push("/de/sign-in");
     router.refresh();
   };
+
+  // Cmd/Ctrl+K opens search from anywhere; Escape closes it.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+      if (event.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="admin-shell-v2">
       <aside className={open ? "admin-sidebar open" : "admin-sidebar"}>
@@ -184,17 +199,22 @@ export function AdminShell({
           >
             <Menu />
           </button>
-          <form action="/admin/products" className="admin-global-search">
-            <Search size={17} />
-            <label className="sr-only" htmlFor="admin-search">
-              Search products
-            </label>
-            <input
-              id="admin-search"
-              name="q"
-              placeholder="Search products, orders or customers"
-            />
-          </form>
+          <nav className="admin-breadcrumbs" aria-label="Breadcrumb">
+            <Link href="/admin">Dashboard</Link>
+            {segments.slice(1).map((segment, index) => (
+              <span key={`${segment}-${index}`}>
+                <ChevronRight size={13} /> {segment.replaceAll("-", " ")}
+              </span>
+            ))}
+          </nav>
+          <button
+            type="button"
+            className="admin-icon-button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search"
+          >
+            <Search size={18} />
+          </button>
           <span
             className={`environment-badge environment-${process.env.NODE_ENV}`}
           >
@@ -226,16 +246,46 @@ export function AdminShell({
             </div>
           </details>
         </header>
-        <div className="admin-breadcrumbs">
-          <Link href="/admin">Dashboard</Link>
-          {segments.slice(1).map((segment, index) => (
-            <span key={`${segment}-${index}`}>
-              <ChevronRight size={13} /> {segment.replaceAll("-", " ")}
-            </span>
-          ))}
-        </div>
         {children}
       </div>
+      {searchOpen && (
+        <div
+          className="admin-search-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Search administration"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setSearchOpen(false);
+          }}
+        >
+          <div className="admin-search-dialog">
+            <form action="/admin/products">
+              <Search size={18} />
+              <label className="sr-only" htmlFor="admin-search">
+                Search products
+              </label>
+              <input
+                id="admin-search"
+                name="q"
+                autoFocus
+                autoComplete="off"
+                placeholder="Search products, orders or customers"
+              />
+              <button
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                aria-label="Close search"
+              >
+                <X size={16} />
+              </button>
+            </form>
+            <p>
+              Press <kbd>Enter</kbd> to search products · <kbd>Esc</kbd> to
+              close
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

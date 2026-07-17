@@ -454,7 +454,9 @@ export async function getBuilderProducts(
           productId: record.id,
           name: translation.name,
           category: record.categories[0]?.category.translations[0]?.name ?? "",
-          image: record.images[0]?.url ?? "/images/product-placeholder.jpg",
+          image:
+            record.images[0]?.url ??
+            "/images/products/product-placeholder.webp",
           imageAlt:
             locale === "de"
               ? (record.images[0]?.altDe ?? translation.name)

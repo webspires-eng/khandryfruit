@@ -26,78 +26,208 @@ const auth = betterAuth({
 });
 
 const products = [
-  [
-    "black-raisins",
-    "Schwarze Rosinen",
-    "Black Raisins",
-    "schwarze-rosinen",
-    "black-raisins",
-    "Kabul",
-    "raisins",
-    "Rosinen",
-    "Raisins",
-    899,
-  ],
-  [
-    "green-raisins",
-    "Grüne Rosinen",
-    "Green Raisins",
-    "gruene-rosinen",
-    "green-raisins",
-    "Kabul",
-    "raisins",
-    "Rosinen",
-    "Raisins",
-    999,
-  ],
-  [
-    "afghan-figs",
-    "Afghanische Feigen",
-    "Afghan Figs",
-    "afghanische-feigen",
-    "afghan-figs",
-    "Kandahar",
-    "figs",
-    "Feigen",
-    "Figs",
-    1299,
-  ],
-  [
-    "dried-mulberries",
-    "Getrocknete Maulbeeren",
-    "Dried Mulberries",
-    "getrocknete-maulbeeren",
-    "dried-mulberries",
-    "Shamali",
-    "mulberries",
-    "Maulbeeren",
-    "Mulberries",
-    1099,
-  ],
-  [
-    "dried-peaches",
-    "Getrocknete Pfirsiche",
-    "Dried Peaches",
-    "getrocknete-pfirsiche",
-    "dried-peaches",
-    "Logar",
-    "peaches",
-    "Pfirsiche",
-    "Peaches",
-    1199,
-  ],
-  [
-    "dried-apricots",
-    "Getrocknete Aprikosen",
-    "Dried Apricots",
-    "getrocknete-aprikosen",
-    "dried-apricots",
-    "",
-    "apricots",
-    "Aprikosen",
-    "Apricots",
-    999,
-  ],
+  {
+    key: "dried-apricots",
+    internalName: "apricots",
+    nameDe: "Aprikosen",
+    nameEn: "Apricots",
+    slugDe: "aprikosen",
+    slugEn: "apricots",
+    categoryKey: "apricots",
+    categoryDe: "Aprikosen",
+    categoryEn: "Apricots",
+    categorySlugDe: "aprikosen",
+    image: "apricots.webp",
+    altDe: "Reife Aprikosen in einer blauen Schale",
+    altEn: "Ripe apricots in a blue bowl",
+    priceCents: 999,
+    bestseller: true,
+  },
+  {
+    key: "afghan-figs",
+    internalName: "figs",
+    nameDe: "Feigen",
+    nameEn: "Figs",
+    slugDe: "feigen",
+    slugEn: "figs",
+    categoryKey: "figs",
+    categoryDe: "Feigen",
+    categoryEn: "Figs",
+    categorySlugDe: "feigen",
+    image: "figs.webp",
+    altDe: "Getrocknete Feigen in einer rustikalen Schale",
+    altEn: "Dried figs in a rustic bowl",
+    priceCents: 1299,
+    bestseller: true,
+  },
+  {
+    key: "mangoes",
+    nameDe: "Mangos",
+    nameEn: "Mangoes",
+    slugDe: "mangos",
+    slugEn: "mangoes",
+    categoryKey: "mangoes",
+    categoryDe: "Mangos",
+    categoryEn: "Mangoes",
+    categorySlugDe: "mangos",
+    image: "mangoes.webp",
+    altDe: "Reife Mangos in einem Korb",
+    altEn: "Ripe mangoes in a basket",
+    priceCents: 1199,
+  },
+  {
+    key: "black-raisins",
+    nameDe: "Schwarze Rosinen",
+    nameEn: "Black Raisins",
+    slugDe: "schwarze-rosinen",
+    slugEn: "black-raisins",
+    categoryKey: "raisins",
+    categoryDe: "Rosinen",
+    categoryEn: "Raisins",
+    categorySlugDe: "rosinen",
+    image: "black-raisins.webp",
+    altDe: "Nahaufnahme schwarzer Rosinen",
+    altEn: "Close-up of black raisins",
+    priceCents: 899,
+    bestseller: true,
+  },
+  {
+    key: "green-raisins",
+    nameDe: "Grüne Rosinen",
+    nameEn: "Green Raisins",
+    slugDe: "gruene-rosinen",
+    slugEn: "green-raisins",
+    categoryKey: "raisins",
+    categoryDe: "Rosinen",
+    categoryEn: "Raisins",
+    categorySlugDe: "rosinen",
+    image: "green-raisins.webp",
+    altDe: "Grüne Rosinen in einem Glasgefäß",
+    altEn: "Green raisins in a glass jar",
+    priceCents: 999,
+  },
+  {
+    key: "brown-raisins",
+    nameDe: "Braune Rosinen",
+    nameEn: "Brown Raisins",
+    slugDe: "braune-rosinen",
+    slugEn: "brown-raisins",
+    categoryKey: "raisins",
+    categoryDe: "Rosinen",
+    categoryEn: "Raisins",
+    categorySlugDe: "rosinen",
+    image: "brown-raisins.webp",
+    altDe: "Braune Rosinen in warmer Nahaufnahme",
+    altEn: "Brown raisins in a warm close-up",
+    priceCents: 949,
+  },
+  {
+    key: "chickpeas",
+    nameDe: "Kichererbsen",
+    nameEn: "Chickpeas",
+    slugDe: "kichererbsen",
+    slugEn: "chickpeas",
+    categoryKey: "pulses",
+    categoryDe: "Hülsenfrüchte",
+    categoryEn: "Pulses",
+    categorySlugDe: "huelsenfruechte",
+    image: "chickpeas.webp",
+    altDe: "Kichererbsen in einer dunklen Schale",
+    altEn: "Chickpeas in a dark bowl",
+    priceCents: 699,
+  },
+  {
+    key: "almonds",
+    nameDe: "Mandeln",
+    nameEn: "Almonds",
+    slugDe: "mandeln",
+    slugEn: "almonds",
+    categoryKey: "nuts",
+    categoryDe: "Nüsse",
+    categoryEn: "Nuts",
+    categorySlugDe: "nuesse",
+    image: "almonds.webp",
+    altDe: "Ganze Mandeln in Nahaufnahme",
+    altEn: "Whole almonds in close-up",
+    priceCents: 1399,
+    bestseller: true,
+  },
+  {
+    key: "pistachios",
+    nameDe: "Pistazien",
+    nameEn: "Pistachios",
+    slugDe: "pistazien",
+    slugEn: "pistachios",
+    categoryKey: "nuts",
+    categoryDe: "Nüsse",
+    categoryEn: "Nuts",
+    categorySlugDe: "nuesse",
+    image: "pistachios.webp",
+    altDe: "Pistazien in einer Keramikschale",
+    altEn: "Pistachios in a ceramic bowl",
+    priceCents: 1599,
+  },
+  {
+    key: "dried-mulberries",
+    internalName: "black-mulberries",
+    nameDe: "Schwarze Maulbeeren",
+    nameEn: "Black Mulberries",
+    slugDe: "schwarze-maulbeeren",
+    slugEn: "black-mulberries",
+    categoryKey: "mulberries",
+    categoryDe: "Maulbeeren",
+    categoryEn: "Mulberries",
+    categorySlugDe: "maulbeeren",
+    image: "black-mulberries.webp",
+    altDe: "Schwarze Maulbeeren auf einem Teller",
+    altEn: "Black mulberries on a plate",
+    priceCents: 1199,
+  },
+  {
+    key: "white-mulberries",
+    nameDe: "Weiße Maulbeeren",
+    nameEn: "White Mulberries",
+    slugDe: "weisse-maulbeeren",
+    slugEn: "white-mulberries",
+    categoryKey: "mulberries",
+    categoryDe: "Maulbeeren",
+    categoryEn: "Mulberries",
+    categorySlugDe: "maulbeeren",
+    image: "white-mulberries.webp",
+    altDe: "Weiße Maulbeeren in Nahaufnahme",
+    altEn: "White mulberries in close-up",
+    priceCents: 1099,
+  },
+  {
+    key: "jujubes",
+    nameDe: "Jujuben",
+    nameEn: "Jujubes",
+    slugDe: "jujuben",
+    slugEn: "jujubes",
+    categoryKey: "jujubes",
+    categoryDe: "Jujuben",
+    categoryEn: "Jujubes",
+    categorySlugDe: "jujuben",
+    image: "jujubes.webp",
+    altDe: "Getrocknete rote Jujuben auf einem Teller",
+    altEn: "Dried red jujubes on a plate",
+    priceCents: 1099,
+  },
+  {
+    key: "cashews",
+    nameDe: "Cashewkerne",
+    nameEn: "Cashews",
+    slugDe: "cashewkerne",
+    slugEn: "cashews",
+    categoryKey: "nuts",
+    categoryDe: "Nüsse",
+    categoryEn: "Nuts",
+    categorySlugDe: "nuesse",
+    image: "cashews.webp",
+    altDe: "Cashewkerne als flächige Nahaufnahme",
+    altEn: "Cashews arranged in a close-up",
+    priceCents: 1499,
+  },
 ] as const;
 
 async function seedUsers() {
@@ -177,131 +307,115 @@ async function seedRoles() {
 async function seedCatalogue() {
   const categories = new Map<string, string>();
   for (const item of products) {
-    const [, , , , , , categoryKey, nameDe, nameEn] = item;
-    if (categories.has(categoryKey)) continue;
+    if (categories.has(item.categoryKey)) continue;
     const category = await db.category.upsert({
-      where: { id: `cat-${categoryKey}` },
+      where: { id: `cat-${item.categoryKey}` },
       update: {},
       create: {
-        id: `cat-${categoryKey}`,
-        internalName: categoryKey,
+        id: `cat-${item.categoryKey}`,
+        internalName: item.categoryKey,
         translations: {
           create: [
             {
               locale: "de",
-              name: nameDe,
-              slug:
-                categoryKey === "raisins"
-                  ? "rosinen"
-                  : categoryKey === "figs"
-                    ? "feigen"
-                    : categoryKey === "mulberries"
-                      ? "maulbeeren"
-                      : categoryKey === "peaches"
-                        ? "pfirsiche"
-                        : "aprikosen",
-              description: `${nameDe} – Entwicklungsinhalt.`,
-              seoTitle: `${nameDe} kaufen | Khan Dry Fruit`,
-              metaDescription: `${nameDe} von Khan Dry Fruit. Produktdaten vor Veröffentlichung prüfen.`,
+              name: item.categoryDe,
+              slug: item.categorySlugDe,
+              description: `${item.categoryDe} – Entwicklungsinhalt.`,
+              seoTitle: `${item.categoryDe} kaufen | Khan Dry Fruit`,
+              metaDescription: `${item.categoryDe} von Khan Dry Fruit. Produktdaten vor Veröffentlichung prüfen.`,
             },
             {
               locale: "en",
-              name: nameEn,
-              slug: categoryKey,
-              description: `${nameEn} – development content.`,
-              seoTitle: `${nameEn} | Khan Dry Fruit`,
-              metaDescription: `${nameEn} from Khan Dry Fruit. Verify product data before publication.`,
+              name: item.categoryEn,
+              slug: item.categoryKey,
+              description: `${item.categoryEn} – development content.`,
+              seoTitle: `${item.categoryEn} | Khan Dry Fruit`,
+              metaDescription: `${item.categoryEn} from Khan Dry Fruit. Verify product data before publication.`,
             },
           ],
         },
       },
     });
-    categories.set(categoryKey, category.id);
+    categories.set(item.categoryKey, category.id);
   }
-  for (const [
-    key,
-    nameDe,
-    nameEn,
-    slugDe,
-    slugEn,
-    region,
-    categoryKey,
-    ,
-    ,
-    priceCents,
-  ] of products) {
+  for (const item of products) {
+    const productId = `prod-${item.key}`;
+    const internalName = "internalName" in item ? item.internalName : item.key;
+    const translation = (locale: "de" | "en") => {
+      const de = locale === "de";
+      const name = de ? item.nameDe : item.nameEn;
+      return {
+        locale,
+        name,
+        slug: de ? item.slugDe : item.slugEn,
+        alternativeNames: [],
+        keywords: [name],
+        shortDescription: de
+          ? `${name} als Entwicklungsprodukt im Sortiment von Khan Dry Fruit.`
+          : `${name} as a development product in the Khan Dry Fruit range.`,
+        description: placeholderCopy[locale].productInformation,
+        ingredients: placeholderCopy[locale].ingredients,
+        allergenStatement: placeholderCopy[locale].allergens,
+        storageInstructions: placeholderCopy[locale].storage,
+        seoTitle: `${name} | Khan Dry Fruit`,
+        metaDescription: de
+          ? `${name} von Khan Dry Fruit. Pflichtangaben werden vor Veröffentlichung geprüft.`
+          : `${name} from Khan Dry Fruit. Mandatory data will be checked before publication.`,
+      };
+    };
     await db.product.upsert({
-      where: { id: `prod-${key}` },
-      update: { giftSuitable: true },
+      where: { id: productId },
+      update: {
+        internalName,
+        featured: true,
+        bestseller: "bestseller" in item && Boolean(item.bestseller),
+        giftSuitable: true,
+        deletedAt: null,
+      },
       create: {
-        id: `prod-${key}`,
-        internalName: key,
+        id: productId,
+        internalName,
         status: "DRAFT",
         featured: true,
-        bestseller: ["black-raisins", "afghan-figs"].includes(key),
+        bestseller: "bestseller" in item && Boolean(item.bestseller),
         giftSuitable: true,
-        countryOfOrigin: "Afghanistan",
-        regionOfOrigin: region,
         translations: {
-          create: [
-            {
-              locale: "de",
-              name: nameDe,
-              slug: slugDe,
-              alternativeNames: [],
-              keywords: [nameDe, region],
-              shortDescription: region
-                ? `${nameDe} aus ${region}; Entwicklungsprodukt bis alle Pflichtdaten bestätigt sind.`
-                : placeholderCopy.de.productInformation,
-              description: region
-                ? `Die Herkunftsangabe ${region} ist als Beispiel bestätigt. Weitere Produktdaten benötigen Freigabe.`
-                : placeholderCopy.de.productInformation,
-              ingredients: placeholderCopy.de.ingredients,
-              allergenStatement: placeholderCopy.de.allergens,
-              storageInstructions: placeholderCopy.de.storage,
-              seoTitle: `${nameDe} | Khan Dry Fruit`,
-              metaDescription: `${nameDe} als Entwicklungsprodukt. Pflichtangaben werden vor Veröffentlichung geprüft.`,
-            },
-            {
-              locale: "en",
-              name: nameEn,
-              slug: slugEn,
-              alternativeNames: [],
-              keywords: [nameEn, region],
-              shortDescription: region
-                ? `${nameEn} from ${region}; development product until mandatory data is confirmed.`
-                : placeholderCopy.en.productInformation,
-              description: region
-                ? `The ${region} sourcing entry is confirmed as an example. Further product data requires approval.`
-                : placeholderCopy.en.productInformation,
-              ingredients: placeholderCopy.en.ingredients,
-              allergenStatement: placeholderCopy.en.allergens,
-              storageInstructions: placeholderCopy.en.storage,
-              seoTitle: `${nameEn} | Khan Dry Fruit`,
-              metaDescription: `${nameEn} as a development product. Mandatory data will be checked before publication.`,
-            },
-          ],
+          create: [translation("de"), translation("en")],
         },
         categories: {
-          create: { categoryId: categories.get(categoryKey)!, isPrimary: true },
+          create: {
+            categoryId: categories.get(item.categoryKey)!,
+            isPrimary: true,
+          },
+        },
+        images: {
+          create: {
+            url: `/images/products/${item.image}`,
+            altDe: item.altDe,
+            altEn: item.altEn,
+            sortOrder: 0,
+            isPrimary: true,
+            width: 1200,
+            height: 900,
+          },
         },
         variants: {
           create: [
             {
-              sku: `DEV-${key.toUpperCase()}-500`,
+              sku: `DEV-${item.key.toUpperCase()}-500`,
               weightGrams: 500,
               shippingWeightG: 540,
-              priceCents,
+              priceCents: item.priceCents,
               vatRateBps: 700,
               inventory: {
                 create: { onHand: 20, reserved: 0, lowStockThreshold: 5 },
               },
             },
             {
-              sku: `DEV-${key.toUpperCase()}-1000`,
+              sku: `DEV-${item.key.toUpperCase()}-1000`,
               weightGrams: 1000,
               shippingWeightG: 1060,
-              priceCents: Math.round(priceCents * 1.8),
+              priceCents: Math.round(item.priceCents * 1.8),
               vatRateBps: 700,
               inventory: {
                 create: { onHand: 8, reserved: 0, lowStockThreshold: 3 },
@@ -311,7 +425,38 @@ async function seedCatalogue() {
         },
       },
     });
+    for (const locale of ["de", "en"] as const) {
+      const data = translation(locale);
+      await db.productTranslation.upsert({
+        where: { productId_locale: { productId, locale } },
+        update: data,
+        create: { productId, ...data },
+      });
+    }
+    const existingImage = await db.productImage.findFirst({
+      where: { productId },
+      orderBy: [{ isPrimary: "desc" }, { sortOrder: "asc" }],
+    });
+    const imageData = {
+      url: `/images/products/${item.image}`,
+      altDe: item.altDe,
+      altEn: item.altEn,
+      sortOrder: 0,
+      isPrimary: true,
+      width: 1200,
+      height: 900,
+    };
+    if (existingImage)
+      await db.productImage.update({
+        where: { id: existingImage.id },
+        data: imageData,
+      });
+    else await db.productImage.create({ data: { productId, ...imageData } });
   }
+  await db.product.updateMany({
+    where: { id: "prod-dried-peaches" },
+    data: { deletedAt: new Date() },
+  });
 }
 
 async function seedOperations() {

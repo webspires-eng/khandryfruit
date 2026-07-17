@@ -925,6 +925,7 @@ export async function decideWholesaleAction(formData: FormData) {
       });
     });
     revalidatePath("/admin/wholesale");
+    revalidatePath(`/admin/wholesale/${input.applicationId}`);
     return { success: true as const };
   } catch (error) {
     return actionError(error);
@@ -1357,8 +1358,16 @@ const editableSettings = new Set([
   "shipping.dispatchEstimate",
   "shipping.deliveryEstimate",
   "brand.socialHandle",
+  "brand.instagramUrl",
+  "brand.facebookUrl",
+  "brand.tiktokUrl",
+  "brand.youtubeUrl",
+  "brand.pinterestUrl",
+  "brand.linkedinUrl",
+  "brand.xUrl",
   "compliance.cookieConsentVersion",
 ]);
+
 export async function updateSettingAction(formData: FormData) {
   const session = await requireAdmin("settings", { recent: true });
   try {

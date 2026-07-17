@@ -1,6 +1,7 @@
 "use client";
 
 import { Gift, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 import type { AppLocale } from "@/config/site";
@@ -39,7 +40,7 @@ export function CartPageClient({ locale }: { locale: AppLocale }) {
         {items.map((item) => (
           <article className="cart-line" key={item.variantId}>
             <div className="cart-thumb">
-              <span />
+              <Image src={item.image} alt="" fill sizes="80px" />
             </div>
             <div>
               <h2>{item.name}</h2>

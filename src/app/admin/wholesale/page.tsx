@@ -1,15 +1,15 @@
-import { AdminForm } from "@/components/admin/admin-form";
-import {
-  AdminSection,
-  Field,
-  SelectField,
-  TextField,
-  Checkbox,
-} from "@/components/admin/product-form";
-import { formatMoney } from "@/lib/commerce/money";
+import Link from "next/link";
+import type { Route } from "next";
+import { ArrowUpRight } from "lucide-react";
 import { db } from "@/lib/db/client";
-import { decideWholesaleAction } from "@/server/actions/admin";
 import { requireAdmin } from "@/server/policies/authorization";
+import {
+  humanise,
+  statusLabel,
+  statusTone,
+  wholesaleDateFormat,
+  wholesaleStatuses,
+} from "./status";
 
 export default async function WholesalePage({
   searchParams,
@@ -18,11 +18,34 @@ export default async function WholesalePage({
 }) {
   await requireAdmin("wholesale");
   const { status = "" } = await searchParams;
-  const applications = await db.wholesaleApplication.findMany({
-    where: status ? { status: status as never } : undefined,
-    include: { user: { include: { wholesaleAccount: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const active = (wholesaleStatuses as readonly string[]).includes(status)
+    ? status
+    : "";
+
+  const [applications, grouped] = await Promise.all([
+    db.wholesaleApplication.findMany({
+      where: active ? { status: active as never } : undefined,
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    }),
+    db.wholesaleApplication.groupBy({ by: ["status"], _count: true }),
+  ]);
+  const counts = new Map(grouped.map((g) => [String(g.status), g._count]));
+  const total = grouped.reduce((sum, g) => sum + g._count, 0);
+  const awaiting =
+    (counts.get("SUBMITTED") ?? 0) +
+    (counts.get("UNDER_REVIEW") ?? 0) +
+    (counts.get("MORE_INFORMATION_REQUIRED") ?? 0);
+
+  const filters = [
+    { value: "", label: "All", count: total },
+    ...wholesaleStatuses.map((s) => ({
+      value: s as string,
+      label: statusLabel[s],
+      count: counts.get(s) ?? 0,
+    })),
+  ];
+
   return (
     <div className="admin-page-v2">
       <div className="admin-page-heading">
@@ -30,112 +53,91 @@ export default async function WholesalePage({
           <p className="eyebrow">Trade accounts</p>
           <h1>Wholesale applications</h1>
           <p>
-            Every decision and role assignment is recorded in the audit log.
+            {awaiting > 0
+              ? `${awaiting} application${awaiting === 1 ? "" : "s"} awaiting a decision.`
+              : "No applications are waiting on you."}{" "}
+            Open an application to review it and record a decision.
           </p>
         </div>
       </div>
-      <form className="admin-filterbar">
-        <select name="status" defaultValue={status}>
-          <option value="">All statuses</option>
-          {[
-            "SUBMITTED",
-            "UNDER_REVIEW",
-            "MORE_INFORMATION_REQUIRED",
-            "APPROVED",
-            "REJECTED",
-          ].map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-        <button className="button">Apply</button>
-      </form>
-      {applications.map((app) => (
-        <div className="admin-two-column" key={app.id}>
-          <section className="admin-card">
-            <header>
-              <h2>{app.companyName}</h2>
-              <span className="admin-status">{app.status}</span>
-            </header>
-            <p>
-              <strong>{app.contactName}</strong>
-              <br />
-              {app.email}
-              <br />
-              {app.phone}
-            </p>
-            <p>
-              {app.businessAddress}
-              {app.city ? `, ${app.city}` : ""} {app.postalCode} ·{" "}
-              {app.countryCode}
-            </p>
-            <p>
-              Business type: {app.businessType}
-              <br />
-              Monthly volume: {app.monthlyOrderVolume}
-              <br />
-              Products: {app.productsOfInterest.join(", ")}
-              <br />
-              Delivery: {app.deliveryCountries.join(", ")}
-            </p>
-            {app.message && <p>{app.message}</p>}
-            {app.user?.wholesaleAccount && (
-              <p>
-                Approved minimum:{" "}
-                {formatMoney(
-                  app.user.wholesaleAccount.minimumOrderCents ?? 0,
-                  "en",
-                )}{" "}
-                · Invoice:{" "}
-                {app.user.wholesaleAccount.invoicePaymentEligible
-                  ? "Eligible"
-                  : "Disabled"}
-              </p>
-            )}
-          </section>
-          {!["APPROVED", "REJECTED"].includes(app.status) && (
-            <AdminForm
-              action={decideWholesaleAction}
-              submitLabel="Save decision"
-            >
-              <input type="hidden" name="applicationId" value={app.id} />
-              <AdminSection title="Review application">
-                <SelectField
-                  label="Decision"
-                  name="status"
-                  required
-                  options={[
-                    "UNDER_REVIEW",
-                    "MORE_INFORMATION_REQUIRED",
-                    "APPROVED",
-                    "REJECTED",
-                  ].map((s) => ({ value: s, label: s.replaceAll("_", " ") }))}
-                />
-                <Field
-                  label="Minimum order in cents"
-                  name="minimumOrderCents"
-                  type="number"
-                  min={0}
-                />
-                <Checkbox
-                  label="Invoice payment eligible"
-                  name="invoicePaymentEligible"
-                />
-                <TextField
-                  label="Internal notes"
-                  name="internalNotes"
-                  defaultValue={app.internalNotes}
-                  rows={5}
-                />
-              </AdminSection>
-            </AdminForm>
-          )}
-        </div>
-      ))}
-      {!applications.length && (
-        <p className="admin-empty">
-          No wholesale applications match this status.
-        </p>
-      )}
+
+      <nav className="admin-tabs" aria-label="Filter by status">
+        {filters.map((filter) => (
+          <Link
+            key={filter.value || "all"}
+            href={
+              (filter.value
+                ? `/admin/wholesale?status=${filter.value}`
+                : "/admin/wholesale") as Route
+            }
+            className={filter.value === active ? "active" : ""}
+            aria-current={filter.value === active ? "page" : undefined}
+          >
+            <span>{filter.label}</span>
+            <b className="admin-tab-count">{filter.count}</b>
+          </Link>
+        ))}
+      </nav>
+
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Contact</th>
+              <th>Business</th>
+              <th>Volume</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {applications.map((app) => (
+              <tr key={app.id}>
+                <td>
+                  <Link
+                    className="admin-row-link"
+                    href={`/admin/wholesale/${app.id}` as Route}
+                  >
+                    {app.companyName}
+                  </Link>
+                  <small>{app.email}</small>
+                </td>
+                <td>
+                  {app.contactName}
+                  <small>{app.phone}</small>
+                </td>
+                <td>{humanise(app.businessType)}</td>
+                <td>{humanise(app.monthlyOrderVolume)}</td>
+                <td>
+                  <span
+                    className={`admin-status ${statusTone[app.status] ?? ""}`}
+                  >
+                    {statusLabel[app.status] ?? app.status}
+                  </span>
+                </td>
+                <td>{wholesaleDateFormat.format(app.createdAt)}</td>
+                <td>
+                  <Link
+                    className="table-action"
+                    href={`/admin/wholesale/${app.id}` as Route}
+                  >
+                    Review <ArrowUpRight size={13} />
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!applications.length && (
+          <p className="admin-empty">
+            {active
+              ? `No applications with status “${statusLabel[active] ?? active}”.`
+              : "No wholesale applications yet."}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

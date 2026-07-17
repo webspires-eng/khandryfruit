@@ -251,6 +251,8 @@ export function Field({
   wide,
   min,
   max,
+  hint,
+  placeholder,
 }: {
   id?: string;
   label: string;
@@ -261,6 +263,8 @@ export function Field({
   wide?: boolean;
   min?: number;
   max?: number;
+  hint?: string;
+  placeholder?: string;
 }) {
   return (
     <label className={wide ? "admin-field wide" : "admin-field"}>
@@ -276,7 +280,9 @@ export function Field({
         type={type}
         min={min}
         max={max}
+        placeholder={placeholder}
       />
+      {hint && <small className="admin-field-hint">{hint}</small>}
     </label>
   );
 }

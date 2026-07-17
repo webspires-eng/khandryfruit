@@ -7,6 +7,7 @@ import {
   PackageCheck,
   ShieldCheck,
 } from "lucide-react";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/storefront/product-card";
@@ -27,21 +28,21 @@ export default async function HomePage({
   const de = locale === "de";
   const categories = [
     [
-      "rosinen",
+      de ? "rosinen" : "raisins",
       de ? "Rosinen" : "Raisins",
       de
         ? "Von dunkel und weich bis hell und fein."
         : "From dark and soft to light and delicate.",
     ],
     [
-      "feigen",
+      de ? "feigen" : "figs",
       de ? "Feigen" : "Figs",
       de
         ? "Bestätigtes Herkunftsbeispiel: Kandahar."
         : "Confirmed sourcing example: Kandahar.",
     ],
     [
-      "maulbeeren",
+      de ? "maulbeeren" : "mulberries",
       de ? "Maulbeeren" : "Mulberries",
       de ? "Aus der Region Shamali." : "From the Shamali region.",
     ],
@@ -95,12 +96,17 @@ export default async function HomePage({
                 : "Arrangement of selected dry fruits in warm natural tones"
             }
           >
-            <div className="hero-bowl">
-              <span />
-              <span />
-              <span />
-              <span />
-              <span />
+            <div className="hero-product-grid" aria-hidden="true">
+              {[
+                "/images/products/apricots.webp",
+                "/images/products/green-raisins.webp",
+                "/images/products/pistachios.webp",
+                "/images/products/black-mulberries.webp",
+              ].map((src) => (
+                <span key={src}>
+                  <Image src={src} alt="" fill sizes="18vw" />
+                </span>
+              ))}
             </div>
             <div className="hero-label">
               <small>{de ? "Ausgewählt in" : "Selected in"}</small>
