@@ -184,7 +184,9 @@ export default async function AdminPage() {
       icon: Boxes,
       urgent: false,
     },
-  ].filter((item) => item.count > 0 && canAccessAdmin(role, item.area as never));
+  ].filter(
+    (item) => item.count > 0 && canAccessAdmin(role, item.area as never),
+  );
 
   return (
     <div className="admin-page-v2">

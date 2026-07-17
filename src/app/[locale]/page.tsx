@@ -33,6 +33,7 @@ export default async function HomePage({
       de
         ? "Von dunkel und weich bis hell und fein."
         : "From dark and soft to light and delicate.",
+      "/images/products/black-raisins.webp",
     ],
     [
       de ? "feigen" : "figs",
@@ -40,11 +41,13 @@ export default async function HomePage({
       de
         ? "Bestätigtes Herkunftsbeispiel: Kandahar."
         : "Confirmed sourcing example: Kandahar.",
+      "/images/products/figs.webp",
     ],
     [
       de ? "maulbeeren" : "mulberries",
       de ? "Maulbeeren" : "Mulberries",
       de ? "Aus der Region Shamali." : "From the Shamali region.",
+      "/images/products/white-mulberries.webp",
     ],
     [
       "geschenkboxen",
@@ -52,6 +55,7 @@ export default async function HomePage({
       de
         ? "Für besondere Momente zusammengestellt."
         : "Composed for meaningful occasions.",
+      "/images/products/pistachios.webp",
     ],
   ];
   return (
@@ -159,7 +163,7 @@ export default async function HomePage({
           </Link>
         </div>
         <div className="category-grid">
-          {categories.map(([slug, name, description], index) => (
+          {categories.map(([slug, name, description, image], index) => (
             <Link
               href={
                 slug === "geschenkboxen" ? "/gift-boxes" : `/category/${slug}`
@@ -168,6 +172,13 @@ export default async function HomePage({
               className={`category-card category-${index + 1}`}
               key={slug}
             >
+              <Image
+                src={image}
+                alt=""
+                fill
+                sizes="(max-width: 760px) 100vw, (max-width: 1100px) 50vw, 25vw"
+                className="category-image"
+              />
               <span className="category-number">0{index + 1}</span>
               <div>
                 <h3>{name}</h3>

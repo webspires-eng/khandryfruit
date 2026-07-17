@@ -16,6 +16,7 @@ import {
   validateRefund,
   type WholesaleState,
 } from "@/lib/commerce/admin-rules";
+import { slugify } from "@/lib/slug";
 import { getStripe } from "@/lib/stripe/client";
 import {
   adminProductSchema,
@@ -31,6 +32,28 @@ import { getProductReadiness } from "@/server/services/product-readiness";
 
 function values(formData: FormData) {
   return Object.fromEntries(formData.entries());
+}
+
+/**
+ * ProductTranslation has @@unique([locale, slug]), so a derived slug must be
+ * de-duplicated before it is written. Suffixes with -2, -3 … until free.
+ */
+async function uniqueTranslationSlug(
+  tx: Parameters<Parameters<typeof db.$transaction>[0]>[0],
+  locale: "de" | "en",
+  base: string,
+  currentProductId?: string,
+) {
+  const root = base || "product";
+  let candidate = root;
+  for (let n = 2; ; n++) {
+    const existing = await tx.productTranslation.findUnique({
+      where: { locale_slug: { locale, slug: candidate } },
+      select: { productId: true },
+    });
+    if (!existing || existing.productId === currentProductId) return candidate;
+    candidate = `${root}-${n}`.slice(0, 160);
+  }
 }
 async function requestMeta() {
   const h = await headers();
@@ -68,15 +91,21 @@ export async function createProductAction(formData: FormData) {
     const input = adminProductSchema.parse(values(formData));
     const meta = await requestMeta();
     const product = await db.$transaction(async (tx) => {
-      const category = await tx.category.findFirst({
-        where: { id: input.categoryId, active: true },
-      });
-      if (!category) throw new Error("CATEGORY_NOT_FOUND");
+      if (input.categoryId) {
+        const category = await tx.category.findFirst({
+          where: { id: input.categoryId, active: true },
+        });
+        if (!category) throw new Error("CATEGORY_NOT_FOUND");
+      }
       const translations = [
         {
           locale: "de" as const,
           name: input.nameDe,
-          slug: input.slugDe,
+          slug: await uniqueTranslationSlug(
+            tx,
+            "de",
+            input.slugDe || slugify(input.nameDe || input.internalName),
+          ),
           alternativeNames: [],
           keywords: [],
           shortDescription: input.shortDescriptionDe,
@@ -87,12 +116,16 @@ export async function createProductAction(formData: FormData) {
           seoTitle: input.seoTitleDe,
           metaDescription: input.metaDescriptionDe,
         },
-        ...(input.nameEn && input.slugEn
+        ...(input.nameEn || input.slugEn
           ? [
               {
                 locale: "en" as const,
                 name: input.nameEn,
-                slug: input.slugEn,
+                slug: await uniqueTranslationSlug(
+                  tx,
+                  "en",
+                  input.slugEn || slugify(input.nameEn || input.internalName),
+                ),
                 alternativeNames: [],
                 keywords: [],
                 shortDescription: input.shortDescriptionEn,
@@ -118,9 +151,13 @@ export async function createProductAction(formData: FormData) {
           regionOfOrigin: input.regionOfOrigin || null,
           responsibleFoodBusiness: input.responsibleFoodBusiness || null,
           translations: { create: translations },
-          categories: {
-            create: { categoryId: input.categoryId, isPrimary: true },
-          },
+          ...(input.categoryId
+            ? {
+                categories: {
+                  create: { categoryId: input.categoryId, isPrimary: true },
+                },
+              }
+            : {}),
         },
       });
       await tx.auditLog.create({
@@ -154,6 +191,21 @@ export async function updateProductAction(formData: FormData) {
         where: { id: productId },
         include: { translations: true },
       });
+      const slugDe = await uniqueTranslationSlug(
+        tx,
+        "de",
+        input.slugDe || slugify(input.nameDe || input.internalName),
+        productId,
+      );
+      const slugEn =
+        input.nameEn || input.slugEn
+          ? await uniqueTranslationSlug(
+              tx,
+              "en",
+              input.slugEn || slugify(input.nameEn || input.internalName),
+              productId,
+            )
+          : "";
       await tx.product.update({
         where: { id: productId },
         data: {
@@ -165,10 +217,12 @@ export async function updateProductAction(formData: FormData) {
           countryOfOrigin: input.countryOfOrigin || null,
           regionOfOrigin: input.regionOfOrigin || null,
           responsibleFoodBusiness: input.responsibleFoodBusiness || null,
-          categories: {
-            deleteMany: {},
-            create: { categoryId: input.categoryId, isPrimary: true },
-          },
+          categories: input.categoryId
+            ? {
+                deleteMany: {},
+                create: { categoryId: input.categoryId, isPrimary: true },
+              }
+            : { deleteMany: {} },
           translations: {
             upsert: [
               {
@@ -176,7 +230,7 @@ export async function updateProductAction(formData: FormData) {
                 create: {
                   locale: "de",
                   name: input.nameDe,
-                  slug: input.slugDe,
+                  slug: slugDe,
                   alternativeNames: [],
                   keywords: [],
                   shortDescription: input.shortDescriptionDe,
@@ -189,7 +243,7 @@ export async function updateProductAction(formData: FormData) {
                 },
                 update: {
                   name: input.nameDe,
-                  slug: input.slugDe,
+                  slug: slugDe,
                   shortDescription: input.shortDescriptionDe,
                   description: input.descriptionDe,
                   ingredients: input.ingredientsDe,
@@ -199,7 +253,7 @@ export async function updateProductAction(formData: FormData) {
                   metaDescription: input.metaDescriptionDe,
                 },
               },
-              ...(input.nameEn && input.slugEn
+              ...(input.nameEn || input.slugEn
                 ? [
                     {
                       where: {
@@ -208,7 +262,7 @@ export async function updateProductAction(formData: FormData) {
                       create: {
                         locale: "en" as const,
                         name: input.nameEn,
-                        slug: input.slugEn,
+                        slug: slugEn,
                         alternativeNames: [],
                         keywords: [],
                         shortDescription: input.shortDescriptionEn,
@@ -221,7 +275,7 @@ export async function updateProductAction(formData: FormData) {
                       },
                       update: {
                         name: input.nameEn,
-                        slug: input.slugEn,
+                        slug: slugEn,
                         shortDescription: input.shortDescriptionEn,
                         description: input.descriptionEn,
                         ingredients: input.ingredientsEn,

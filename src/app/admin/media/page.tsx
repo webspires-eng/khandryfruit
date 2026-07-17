@@ -16,7 +16,8 @@ export default async function MediaPage() {
     listR2Images(),
     db.mediaAsset.findMany(),
   ]);
-  const objects = objectsResult.status === "fulfilled" ? objectsResult.value : [];
+  const objects =
+    objectsResult.status === "fulfilled" ? objectsResult.value : [];
   const assets = assetsResult.status === "fulfilled" ? assetsResult.value : [];
   const byKey = new Map(assets.map((asset) => [asset.storageKey, asset]));
   const items: MediaLibraryItem[] = objects.map((object) => {

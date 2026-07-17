@@ -2,16 +2,20 @@ import { z } from "zod";
 const cents = z.coerce.number().int().min(0).max(100_000_000);
 const optionalCents = z.preprocess((value) => value === "" || value === undefined ? undefined : value, cents.optional());
 const slug = z.string().trim().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(160);
+// Drafts may be saved incomplete: an empty slug is derived from the name on the
+// server. A non-empty slug still has to be well formed. Publication readiness —
+// not this schema — is what gates a product going live.
+const optionalSlug = z.string().trim().max(160).refine((value) => value === "" || /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value), "Use lowercase letters, numbers and hyphens").optional().default("");
 
 export const adminProductSchema = z.object({
-  internalName: z.string().trim().min(2).max(160), nameDe: z.string().trim().min(2).max(160), slugDe: slug,
-  nameEn: z.string().trim().max(160).optional().default(""), slugEn: z.string().trim().max(160).optional().default(""),
+  internalName: z.string().trim().min(2).max(160), nameDe: z.string().trim().max(160).optional().default(""), slugDe: optionalSlug,
+  nameEn: z.string().trim().max(160).optional().default(""), slugEn: optionalSlug,
   shortDescriptionDe: z.string().trim().max(500).optional().default(""), descriptionDe: z.string().trim().max(20_000).optional().default(""),
   shortDescriptionEn: z.string().trim().max(500).optional().default(""), descriptionEn: z.string().trim().max(20_000).optional().default(""),
   ingredientsDe: z.string().trim().max(4_000).optional().default(""), ingredientsEn: z.string().trim().max(4_000).optional().default(""),
   allergenDe: z.string().trim().max(4_000).optional().default(""), allergenEn: z.string().trim().max(4_000).optional().default(""),
   storageDe: z.string().trim().max(4_000).optional().default(""), storageEn: z.string().trim().max(4_000).optional().default(""),
-  categoryId: z.string().min(1), countryOfOrigin: z.string().trim().max(100).optional().default(""), regionOfOrigin: z.string().trim().max(100).optional().default(""), responsibleFoodBusiness: z.string().trim().max(500).optional().default(""),
+  categoryId: z.string().trim().optional().default(""), countryOfOrigin: z.string().trim().max(100).optional().default(""), regionOfOrigin: z.string().trim().max(100).optional().default(""), responsibleFoodBusiness: z.string().trim().max(500).optional().default(""),
   seoTitleDe: z.string().trim().max(70).optional().default(""), seoTitleEn: z.string().trim().max(70).optional().default(""), metaDescriptionDe: z.string().trim().max(180).optional().default(""), metaDescriptionEn: z.string().trim().max(180).optional().default(""),
   featured: z.coerce.boolean().default(false), bestseller: z.coerce.boolean().default(false), newProduct: z.coerce.boolean().default(false), giftSuitable: z.coerce.boolean().default(false)
 });

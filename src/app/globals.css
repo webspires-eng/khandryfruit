@@ -151,7 +151,7 @@ p {
   align-items: center;
   gap: clamp(0.75rem, 1.5vw, 1.45rem);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .desktop-nav a {
   padding-block: 1rem;
@@ -459,23 +459,26 @@ p {
 .category-card::after {
   content: "";
   position: absolute;
-  width: 11rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  right: -2rem;
-  bottom: -3rem;
-  background: radial-gradient(
-    circle at 35% 30%,
-    #deb36d 0 12%,
-    #6f4731 13% 23%,
-    #ad7841 24% 35%,
-    #3e3227 36%
-  );
-  opacity: 0.82;
-}
-.category-card > * {
-  position: relative;
   z-index: 1;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(8 25 19 / 0.16),
+    rgb(8 25 19 / 0.3) 42%,
+    rgb(8 25 19 / 0.9)
+  );
+}
+.category-card > :not(.category-image) {
+  position: relative;
+  z-index: 2;
+}
+.category-image {
+  z-index: 0;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.category-card:hover .category-image {
+  transform: scale(1.05);
 }
 .category-1 {
   background: #71503e;
@@ -1974,25 +1977,51 @@ p {
 .admin-tabs::-webkit-scrollbar {
   display: none;
 }
-.admin-tabs a {
+.admin-tabs a,
+.admin-tabs button {
   display: flex;
   align-items: center;
   gap: 0.4rem;
   flex: 0 0 auto;
   padding: 0.6rem 0.85rem;
+  border: 0;
   border-bottom: 2px solid transparent;
+  background: transparent;
   color: var(--muted);
+  font-family: inherit;
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
+  cursor: pointer;
 }
-.admin-tabs a:hover {
+.admin-tabs a:hover,
+.admin-tabs button:hover {
   color: #12342a;
   background: #f4f6f2;
 }
-.admin-tabs a.active {
+.admin-tabs a.active,
+.admin-tabs button.active {
   border-bottom-color: var(--forest, #12342a);
   color: #12342a;
+  font-weight: 800;
+}
+
+/* Inactive panels stay mounted so their fields still submit; [hidden] must
+   therefore beat the panel's own display rule. */
+.admin-form-tabpanel {
+  display: grid;
+  gap: 1.35rem;
+}
+.admin-form-tabpanel[hidden] {
+  display: none;
+}
+.admin-optional-note {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.6rem;
+  background: #f2f6f3;
+  color: var(--muted);
+  font-size: 0.72rem;
 }
 .admin-tab-count {
   padding: 0.1rem 0.4rem;
@@ -2298,7 +2327,7 @@ p {
 }
 .admin-card h2 {
   margin: 0;
-  font: 800 0.9rem var(--font-sans);
+  font: 600 0.9rem var(--font-sans);
 }
 .admin-card header a {
   display: flex;
@@ -2613,7 +2642,7 @@ p {
 }
 .admin-form-section > header h2 {
   margin: 0 0 0.2rem;
-  font: 800 0.9rem var(--font-sans);
+  font: 600 0.9rem var(--font-sans);
 }
 .admin-form-section > header p {
   margin: 0;
@@ -2787,7 +2816,7 @@ p {
 }
 .admin-empty-state h2 {
   margin-bottom: 0.3rem;
-  font: 800 1rem var(--font-sans);
+  font: 600 1rem var(--font-sans);
 }
 .admin-empty-state p {
   margin: 0;
@@ -2808,7 +2837,7 @@ p {
 }
 .danger-zone h2 {
   margin: 0 0 0.2rem;
-  font: 800 0.9rem var(--font-sans);
+  font: 600 0.9rem var(--font-sans);
   color: var(--error);
 }
 .danger-zone p {
