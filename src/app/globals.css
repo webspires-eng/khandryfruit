@@ -3007,6 +3007,17 @@ p {
   gap: 0.7rem;
   max-width: 52rem;
 }
+/* Wholesale FAQ spans the full band in two columns. */
+.wholesale-page .faq-list {
+  max-width: none;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .wholesale-page .faq-list {
+    grid-template-columns: 1fr;
+  }
+}
 .faq-list details {
   border: 1px solid var(--sand);
   border-radius: 0.8rem;
