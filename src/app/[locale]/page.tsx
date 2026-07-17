@@ -1,12 +1,4 @@
-import {
-  ArrowRight,
-  Box,
-  CreditCard,
-  Leaf,
-  MapPin,
-  PackageCheck,
-  ShieldCheck,
-} from "lucide-react";
+import { ArrowRight, Box, CreditCard, Leaf } from "lucide-react";
 import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -75,18 +67,6 @@ export default async function HomePage({
               >
                 {t("sourceCta")}
               </Link>
-            </div>
-            <div className="hero-proof">
-              <span>
-                <ShieldCheck size={17} /> Stripe
-              </span>
-              <span>
-                <MapPin size={17} /> Duisburg
-              </span>
-              <span>
-                <PackageCheck size={17} />{" "}
-                {de ? "Sorgfältig verpackt" : "Packed with care"}
-              </span>
             </div>
           </div>
           <div className="hero-art">

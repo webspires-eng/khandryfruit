@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
@@ -70,6 +71,17 @@ export default async function WholesalePage({
   const productOptions = categories.length
     ? categories
     : FALLBACK_PRODUCT_OPTIONS[locale];
+  // One representative photo per category, taken from the real catalogue so the
+  // imagery always matches what is actually on sale.
+  const categoryCards = Array.from(
+    products
+      .reduce((map, product) => {
+        if (product.category && !map.has(product.category))
+          map.set(product.category, product);
+        return map;
+      }, new Map<string, (typeof products)[number]>())
+      .values(),
+  ).slice(0, 6);
   const session = await getSession();
   const isAuthenticated = Boolean(session);
 
@@ -127,10 +139,37 @@ export default async function WholesalePage({
         <ChevronRight size={14} />
         <span>{tNav("wholesale")}</span>
       </nav>
-      <header className="page-hero">
-        <p className="eyebrow">{t("eyebrow")}</p>
-        <h1>{t("title")}</h1>
-        <p className="lead-copy">{t("lead")}</p>
+      <header className="wholesale-hero">
+        <div>
+          <p className="eyebrow">{t("eyebrow")}</p>
+          <h1>{t("title")}</h1>
+          <p className="lead-copy">{t("lead")}</p>
+          <div className="content-actions">
+            <a className="button" href="#apply">
+              {t("ctaButton")}
+            </a>
+            <Link
+              className="button secondary"
+              href={localizedPath("contact", locale)}
+              locale={locale}
+            >
+              {t("contactCta")}
+            </Link>
+          </div>
+        </div>
+        <figure className="wholesale-hero-photo">
+          <Image
+            src="/images/products/almonds.webp"
+            alt={
+              locale === "de"
+                ? "Mandeln in Großgebinde-Menge"
+                : "Almonds in bulk quantity"
+            }
+            fill
+            sizes="(max-width: 900px) 100vw, 45vw"
+            priority
+          />
+        </figure>
       </header>
       <section className="section">
         <div className="section-heading">
@@ -144,12 +183,28 @@ export default async function WholesalePage({
           <h2>{t("categoriesTitle")}</h2>
         </div>
         <p>{t("categoriesLead")}</p>
-        {categories.length > 0 && (
-          <ul className="pill-list">
-            {categories.map((category) => (
-              <li key={category}>{category}</li>
+        {categoryCards.length > 0 ? (
+          <div className="wholesale-range">
+            {categoryCards.map((product) => (
+              <figure key={product.category}>
+                <Image
+                  src={product.image}
+                  alt={product.imageAlt}
+                  fill
+                  sizes="(max-width: 760px) 50vw, 22vw"
+                />
+                <figcaption>{product.category}</figcaption>
+              </figure>
             ))}
-          </ul>
+          </div>
+        ) : (
+          categories.length > 0 && (
+            <ul className="pill-list">
+              {categories.map((category) => (
+                <li key={category}>{category}</li>
+              ))}
+            </ul>
+          )
         )}
       </section>
       <section className="section">

@@ -461,19 +461,6 @@ p {
   background: transparent;
   border-color: rgb(255 255 255 / 0.5);
 }
-.hero-proof {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.4rem;
-  margin-top: 2.5rem;
-  color: #dce7df;
-  font-size: 0.77rem;
-}
-.hero-proof span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
 .hero-art {
   position: relative;
   height: min(34rem, 60vh);
@@ -1501,9 +1488,6 @@ p {
   .hero-art {
     height: 20rem;
     padding-bottom: 2.5rem;
-  }
-  .hero-proof {
-    gap: 0.8rem;
   }
   .trust-grid {
     grid-template-columns: 1fr;
@@ -3928,6 +3912,67 @@ p {
 }
 @media (max-width: 760px) {
   .skeleton-product {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Wholesale landing page
+--------------------------------------------------------------------------- */
+.wholesale-hero {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  padding-block: clamp(1.5rem, 4vw, 3rem);
+}
+.wholesale-hero h1 {
+  margin-bottom: 1rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+.wholesale-hero .content-actions {
+  margin-top: 1.75rem;
+}
+.wholesale-hero-photo {
+  position: relative;
+  margin: 0;
+  height: clamp(16rem, 32vw, 24rem);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--sand);
+}
+.wholesale-hero-photo img {
+  object-fit: cover;
+}
+/* One representative photo per catalogue category. */
+.wholesale-range {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.wholesale-range figure {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--sand);
+}
+.wholesale-range img {
+  object-fit: cover;
+}
+.wholesale-range figcaption {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 1.5rem 0.85rem 0.7rem;
+  background: linear-gradient(180deg, transparent, rgb(13 45 35 / 0.85));
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+@media (max-width: 900px) {
+  .wholesale-hero {
     grid-template-columns: 1fr;
   }
 }
