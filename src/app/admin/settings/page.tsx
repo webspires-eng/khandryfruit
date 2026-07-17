@@ -267,29 +267,6 @@ const navSections: {
   items: { area: AdminArea; label: string; href: Route; description: string }[];
 }[] = [
   {
-    title: "Catalogue structure",
-    items: [
-      {
-        area: "categories",
-        label: "Categories",
-        href: "/admin/categories" as Route,
-        description: "Bilingual navigation and product grouping.",
-      },
-      {
-        area: "packaging",
-        label: "Packaging",
-        href: "/admin/packaging" as Route,
-        description: "Packaging options and material details.",
-      },
-      {
-        area: "coupons",
-        label: "Coupons",
-        href: "/admin/coupons" as Route,
-        description: "Discount codes and promotion rules.",
-      },
-    ],
-  },
-  {
     title: "Publishing",
     items: [
       {
@@ -332,12 +309,6 @@ const navSections: {
   {
     title: "Administration",
     items: [
-      {
-        area: "media",
-        label: "Media library",
-        href: "/admin/media" as Route,
-        description: "Uploaded images and stored assets.",
-      },
       {
         area: "audit-logs",
         label: "Audit logs",

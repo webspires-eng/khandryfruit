@@ -73,7 +73,14 @@ const navGroups: Array<{
   },
   {
     label: "Catalogue",
-    areas: ["products", "gift-boxes"],
+    areas: [
+      "products",
+      "gift-boxes",
+      "categories",
+      "packaging",
+      "coupons",
+      "media",
+    ],
   },
   {
     label: "Customers",

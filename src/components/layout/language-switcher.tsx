@@ -6,12 +6,24 @@ import { Check, ChevronDown } from "lucide-react";
 import { FlagDe, FlagGb } from "./brand-icons";
 
 const languages = [
-  { locale: "de", label: "Deutsch", short: "DE" },
-  { locale: "en", label: "English", short: "EN" },
+  { locale: "de", label: "Deutsch" },
+  { locale: "en", label: "English" },
 ] as const;
 
-function Flag({ locale, uid }: { locale: string; uid: string }) {
-  return locale === "de" ? <FlagDe /> : <FlagGb uid={uid} />;
+function Flag({
+  locale,
+  uid,
+  size,
+}: {
+  locale: string;
+  uid: string;
+  size?: number;
+}) {
+  return locale === "de" ? (
+    <FlagDe size={size} />
+  ) : (
+    <FlagGb uid={uid} size={size} />
+  );
 }
 
 export function LanguageSwitcher() {
@@ -42,7 +54,7 @@ export function LanguageSwitcher() {
     <details className="language-menu" ref={ref}>
       {/* Flag only — the language name lives in the dropdown and aria-label. */}
       <summary aria-label={`Language: ${current.label}`}>
-        <Flag locale={current.locale} uid="current" />
+        <Flag locale={current.locale} uid="current" size={22} />
         <ChevronDown size={13} aria-hidden="true" />
       </summary>
       <div role="menu">
