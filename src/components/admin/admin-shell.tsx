@@ -86,10 +86,6 @@ const navGroups: Array<{
     label: "Customers",
     areas: ["customers", "wholesale", "contact-enquiries", "reviews"],
   },
-  {
-    label: "Workspace",
-    areas: ["settings"],
-  },
 ];
 
 export function AdminShell({
@@ -219,33 +215,41 @@ export function AdminShell({
           >
             <Search size={18} />
           </button>
-          <span
-            className={`environment-badge environment-${process.env.NODE_ENV}`}
-          >
-            {process.env.NODE_ENV === "production"
-              ? "Production"
-              : "Development"}
-          </span>
+          {areas.includes("settings") && (
+            <Link
+              href="/admin/settings"
+              className={`admin-icon-button ${
+                pathname.startsWith("/admin/settings") ? "active" : ""
+              }`}
+              aria-label="Settings"
+              aria-current={
+                pathname.startsWith("/admin/settings") ? "page" : undefined
+              }
+            >
+              <Settings size={18} />
+            </Link>
+          )}
           {areas.includes("system-health") && (
             <Link
               href="/admin/system-health"
               className="admin-alert-button"
               aria-label="Open system health"
             >
-              <Bell size={19} />
+              <Bell size={18} />
               <span />
             </Link>
           )}
+          {/* Icon only — the name and role live in the open menu. */}
           <details className="admin-user-menu">
-            <summary>
-              <CircleUserRound size={20} />
-              <span>
-                <strong>{user.name}</strong>
-                <small>{user.role.replaceAll("_", " ").toLowerCase()}</small>
-              </span>
+            <summary aria-label={`Account: ${user.name}`}>
+              <CircleUserRound size={18} />
             </summary>
             <div>
+              <strong>{user.name}</strong>
               <span>{user.email}</span>
+              <span className="admin-user-role">
+                {user.role.replaceAll("_", " ").toLowerCase()}
+              </span>
               <button onClick={logout}>Sign out</button>
             </div>
           </details>

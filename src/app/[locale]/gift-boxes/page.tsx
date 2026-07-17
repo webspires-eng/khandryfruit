@@ -161,7 +161,9 @@ export default async function GiftBoxesPage({
                   <div className="occasion-chips">
                     {box.occasions.slice(0, 3).map((value) => (
                       <span key={value}>
-                        {(giftOccasionValues as readonly string[]).includes(value)
+                        {(giftOccasionValues as readonly string[]).includes(
+                          value,
+                        )
                           ? t(`occasions.${value}`)
                           : value}
                       </span>

@@ -67,7 +67,9 @@ export default async function ContactPage({
             <h3>
               <Phone size={18} aria-hidden="true" /> {t("channels.phoneTitle")}
             </h3>
-            <a href={`tel:${siteConfig.phoneHref}`}>{siteConfig.phoneDisplay}</a>
+            <a href={`tel:${siteConfig.phoneHref}`}>
+              {siteConfig.phoneDisplay}
+            </a>
           </div>
           <div className="channel-card">
             <h3>

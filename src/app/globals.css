@@ -673,50 +673,6 @@ p {
 .product-visual:hover .product-photo {
   transform: scale(1.045);
 }
-.fruit-shape,
-.large-fruit-shape {
-  display: block;
-  width: 11.5rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 32% 28%, #c1954c 0 8%, transparent 9%),
-    radial-gradient(circle at 66% 30%, #56352a 0 10%, transparent 11%),
-    radial-gradient(circle at 45% 63%, #9d6b38 0 12%, transparent 13%),
-    radial-gradient(
-      circle at 57% 48%,
-      #4f3428 0 39%,
-      #805b3c 40% 48%,
-      transparent 49%
-    );
-  filter: drop-shadow(0 20px 18px rgb(65 45 31 / 0.22));
-  transition: transform 0.3s;
-}
-.product-visual:hover .fruit-shape {
-  transform: scale(1.04) rotate(2deg);
-}
-.fruit-feigen .fruit-shape,
-.fruit-feigen .large-fruit-shape {
-  background:
-    radial-gradient(ellipse at 35% 35%, #ded0a5 0 13%, transparent 14%),
-    radial-gradient(ellipse at 65% 42%, #ad9570 0 16%, transparent 17%),
-    radial-gradient(ellipse at 50% 62%, #c8b58b 0 19%, transparent 20%), #6f5741;
-}
-.fruit-maulbeeren .fruit-shape,
-.fruit-maulbeeren .large-fruit-shape {
-  background:
-    radial-gradient(circle, #e4d1a2 0 11%, transparent 12%) 0 0/32px 32px,
-    #897352;
-}
-.fruit-pfirsiche .fruit-shape,
-.fruit-pfirsiche .large-fruit-shape,
-.fruit-aprikosen .fruit-shape,
-.fruit-aprikosen .large-fruit-shape {
-  background:
-    radial-gradient(circle at 35% 35%, #e39d3a 0 18%, transparent 19%),
-    radial-gradient(circle at 64% 39%, #c26a31 0 20%, transparent 21%),
-    radial-gradient(circle at 48% 67%, #e8b44c 0 21%, transparent 22%), #754228;
-}
 .draft-badge {
   z-index: 2;
   position: absolute;
@@ -1009,9 +965,6 @@ p {
 }
 .product-gallery-image {
   object-fit: cover;
-}
-.large-fruit-shape {
-  width: min(25rem, 70%);
 }
 .gallery-origin {
   z-index: 2;
@@ -1435,14 +1388,12 @@ p {
   color: var(--muted);
   margin: -0.5rem 0 1rem;
 }
-.account-grid,
-.metric-grid {
+.account-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
-.account-card,
-.metric-grid section {
+.account-card {
   border: 1px solid var(--sand);
   border-radius: var(--radius-md);
   padding: 1.5rem;
@@ -1485,76 +1436,6 @@ p {
   gap: 0.7rem;
   margin-top: 2rem;
 }
-.admin-shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 16rem 1fr;
-  background: #f3f4f1;
-}
-.admin-shell > aside {
-  background: var(--forest-deep);
-  color: white;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-}
-.admin-brand {
-  margin-bottom: 2rem;
-}
-.admin-shell nav {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  flex: 1;
-}
-.admin-shell nav a {
-  padding: 0.55rem 0.7rem;
-  border-radius: 0.5rem;
-  text-transform: capitalize;
-  font-size: 0.82rem;
-  color: #d2e0d9;
-}
-.admin-shell nav a:hover {
-  background: rgb(255 255 255 / 0.08);
-}
-.admin-page {
-  padding: clamp(1.5rem, 4vw, 3rem);
-}
-.admin-page header h1 {
-  text-transform: capitalize;
-  font-size: 3rem;
-}
-.metric-grid section {
-  background: white;
-}
-.metric-grid span {
-  display: block;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-.metric-grid strong {
-  font: 700 2.4rem var(--font-sans);
-}
-.admin-panel {
-  background: white;
-  border: 1px solid #dfe1dc;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  margin-top: 2rem;
-}
-.admin-panel h2 {
-  font-size: 1.5rem;
-}
-.admin-panel li.blocked {
-  color: var(--error);
-  margin-block: 0.5rem;
-}
-.admin-toolbar {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
 @media (max-width: 1100px) {
   /* The bar nav gives way to the drawer at exactly the same width, so
      navigation is never unreachable. */
@@ -1578,8 +1459,7 @@ p {
   .product-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .account-grid,
-  .metric-grid {
+  .account-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -1660,10 +1540,6 @@ p {
   .story-grid {
     gap: 2rem;
   }
-  .origin-map {
-    min-height: 21rem;
-    transform: scale(0.83);
-  }
   .quality-card {
     gap: 1rem;
   }
@@ -1730,12 +1606,6 @@ p {
     padding: 0;
     justify-content: center;
     bottom: 4.5rem;
-  }
-  .admin-shell {
-    grid-template-columns: 1fr;
-  }
-  .admin-shell > aside {
-    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1860,27 +1730,10 @@ p {
   display: none;
   border: 0;
   background: transparent;
-}
-.admin-global-search {
-  width: min(24rem, 32vw);
-  min-height: 2.75rem;
-  padding-inline: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  border: 1px solid #d8ddd5;
-  border-radius: 0.7rem;
-  background: #f7f8f5;
-}
-.admin-global-search input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-size: 0.8rem;
-}
-/* Topbar search trigger: the field itself lives in a dialog. */
-.admin-icon-button {
+} /* Topbar search trigger: the field itself lives in a dialog. */
+.admin-icon-button,
+.admin-alert-button,
+.admin-user-menu summary {
   width: 2.6rem;
   height: 2.6rem;
   display: grid;
@@ -1892,8 +1745,15 @@ p {
   color: #365247;
   cursor: pointer;
 }
-.admin-icon-button:hover {
+.admin-icon-button:hover,
+.admin-alert-button:hover,
+.admin-user-menu summary:hover {
   background: #eef1ec;
+}
+.admin-icon-button.active {
+  border-color: #12342a;
+  background: #12342a;
+  color: white;
 }
 .admin-search-backdrop {
   position: fixed;
@@ -1960,47 +1820,23 @@ p {
   background: #f4f6f2;
   font: 700 0.66rem var(--font-sans);
 }
-.environment-badge {
-  margin-left: auto;
-  padding: 0.3rem 0.55rem;
-  border-radius: 999px;
-  font-size: 0.62rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.environment-development {
-  color: #705112;
-  background: #fff1be;
-}
-.environment-production {
-  color: #1d5f37;
-  background: #dff2e5;
-}
+
 .admin-user-menu {
   position: relative;
 }
 .admin-user-menu summary {
   list-style: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
 }
 .admin-user-menu summary::-webkit-details-marker {
   display: none;
 }
-.admin-user-menu summary span {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
+.admin-user-menu > div strong {
+  font-size: 0.8rem;
 }
-.admin-user-menu summary strong {
-  font-size: 0.76rem;
-}
-.admin-user-menu summary small {
+.admin-user-role {
   color: var(--muted);
-  font-size: 0.61rem;
+  font-size: 0.66rem;
+  font-weight: 700;
   text-transform: capitalize;
 }
 .admin-user-menu > div {
@@ -2056,10 +1892,6 @@ p {
   color: #12342a;
   font-weight: 700;
 }
-/* Breadcrumbs absorb the free space, so the badge no longer needs to. */
-.admin-topbar .environment-badge {
-  margin-left: 0;
-}
 /* Every admin page stacks cards/sections directly here, so the page owns the
    rhythm between them rather than each page adding its own margins. */
 .admin-page-v2 {
@@ -2084,12 +1916,6 @@ p {
   color: var(--muted);
   margin: 0;
   font-size: 0.78rem;
-}
-.admin-autosave-note {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 
 /* Settings tabs */
@@ -2167,18 +1993,7 @@ p {
   display: grid;
   gap: 1.35rem;
   align-content: start;
-}
-
-/* Application / detail cards */
-.admin-application-title h2 {
-  margin: 0 0 0.15rem;
-}
-.admin-application-title small {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 600;
-}
-/* Primary cell link in a list row; the whole row is not clickable so that
+} /* Primary cell link in a list row; the whole row is not clickable so that
    the email/phone links inside stay independently usable. */
 .admin-row-link {
   color: var(--charcoal);
@@ -2205,37 +2020,6 @@ p {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.admin-detail-grid {
-  margin: 0;
-  padding: 1rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  gap: 0.8rem 1.5rem;
-}
-.admin-detail-grid > div {
-  display: grid;
-  gap: 0.1rem;
-  min-width: 0;
-}
-.admin-detail-grid dt {
-  color: var(--muted);
-  font-size: 0.6rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.admin-detail-grid dd {
-  margin: 0;
-  color: var(--charcoal);
-  font-size: 0.78rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.admin-detail-grid a {
-  color: var(--forest, #12342a);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
 .admin-quote {
   margin: 0 1rem 1rem;
   padding: 0.7rem 0.9rem;
@@ -2245,23 +2029,6 @@ p {
   color: var(--charcoal);
   font-size: 0.76rem;
   font-style: italic;
-}
-.admin-account-summary {
-  display: grid;
-  gap: 0.15rem;
-  margin: 0 1rem 1rem;
-  padding: 0.7rem 0.9rem;
-  border-radius: 0.5rem;
-  background: #f2f6f3;
-  color: var(--charcoal);
-  font-size: 0.74rem;
-}
-.admin-account-summary strong {
-  font-size: 0.66rem;
-  font-weight: 900;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted);
 }
 .admin-card .admin-form {
   padding: 0 1rem 1rem;
@@ -2601,19 +2368,6 @@ p {
   }
   .admin-workspace {
     margin-left: 0;
-  }
-  .admin-global-search {
-    width: auto;
-    flex: 1;
-  }
-  .admin-global-search input::placeholder {
-    color: transparent;
-  }
-  .environment-badge {
-    display: none;
-  }
-  .admin-user-menu summary span {
-    display: none;
   }
   .admin-dashboard-grid {
     grid-template-columns: 1fr;
@@ -3256,8 +3010,7 @@ p {
   padding: 0;
   list-style: none;
 }
-.pill-list li,
-.chip {
+.pill-list li {
   padding: 0.45rem 0.8rem;
   border: 1px solid var(--sand);
   border-radius: 999px;
@@ -3839,15 +3592,6 @@ p {
 }
 .admin-alert-button {
   position: relative;
-  width: 2.6rem;
-  height: 2.6rem;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border: 1px solid #d8ddd5;
-  border-radius: 0.7rem;
-  background: #f7f8f5;
-  color: #365247;
 }
 .admin-alert-button > span {
   position: absolute;
@@ -4104,5 +3848,86 @@ p {
   }
   .media-upload-form .button {
     width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Loading skeletons — route-level fallbacks so a click gives instant feedback
+--------------------------------------------------------------------------- */
+.skeleton {
+  display: block;
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    var(--sand) 25%,
+    var(--ivory) 50%,
+    var(--sand) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+.skeleton-line {
+  height: 0.8rem;
+}
+.skeleton-line.tall {
+  height: 1.6rem;
+}
+.skeleton-line.w-30 {
+  width: 30%;
+}
+.skeleton-line.w-40 {
+  width: 40%;
+}
+.skeleton-line.w-50 {
+  width: 50%;
+}
+.skeleton-line.w-70 {
+  width: 70%;
+}
+.skeleton-image {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+}
+.skeleton-image.tall {
+  aspect-ratio: 4 / 5;
+}
+.skeleton-heading {
+  display: grid;
+  gap: 0.7rem;
+  margin-bottom: 2rem;
+}
+.skeleton-card {
+  display: grid;
+  gap: 0.6rem;
+}
+.skeleton-product {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: start;
+}
+.skeleton-detail {
+  display: grid;
+  gap: 0.9rem;
+}
+.skeleton-button {
+  width: 12rem;
+  height: 3rem;
+  border-radius: 999px;
+  margin-top: 0.5rem;
+}
+@media (max-width: 760px) {
+  .skeleton-product {
+    grid-template-columns: 1fr;
   }
 }

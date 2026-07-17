@@ -24,7 +24,8 @@ export async function generateMetadata({
   return {
     title: box.seoTitle || box.name,
     description: box.metaDescription || box.description,
-    robots: box.status === "DRAFT" ? { index: false, follow: false } : undefined,
+    robots:
+      box.status === "DRAFT" ? { index: false, follow: false } : undefined,
     alternates: {
       canonical: `/${locale}${base}/${box.slug}`,
       languages: {
@@ -49,7 +50,8 @@ export default async function GiftBoxDetailPage({
     getGiftBoxBySlug(locale, slug),
   ]);
   if (!box) notFound();
-  if (process.env.NODE_ENV === "production" && box.status !== "ACTIVE") notFound();
+  if (process.env.NODE_ENV === "production" && box.status !== "ACTIVE")
+    notFound();
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const productSchema =

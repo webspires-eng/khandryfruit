@@ -4,7 +4,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { localizedHref } from "@/config/routes";
 import { isLocale } from "@/config/site";
-import { GiftBoxBuilder, type BuilderInitialState } from "@/features/gift-boxes/builder";
+import {
+  GiftBoxBuilder,
+  type BuilderInitialState,
+} from "@/features/gift-boxes/builder";
 import { db } from "@/lib/db/client";
 import { env } from "@/lib/env";
 import {

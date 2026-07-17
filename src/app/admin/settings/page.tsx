@@ -386,9 +386,6 @@ export default async function SettingsPage({
           <h1>Site settings</h1>
           <p>{activeTab.description}</p>
         </div>
-        {editable && (
-          <p className="admin-autosave-note">Changes save automatically.</p>
-        )}
       </div>
 
       <nav className="admin-tabs" aria-label="Settings sections">
