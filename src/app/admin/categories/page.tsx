@@ -9,6 +9,7 @@ import { db } from "@/lib/db/client";
 import {
   archiveCategoryAction,
   createCategoryAction,
+  updateCategoryAction,
 } from "@/server/actions/admin";
 import { requireAdmin } from "@/server/policies/authorization";
 export default async function CategoriesPage() {
@@ -43,32 +44,120 @@ export default async function CategoriesPage() {
                 (item) => item.locale === "en",
               );
               return (
-                <div className="admin-list-row" key={category.id}>
-                  <span>
-                    <strong>{en?.name ?? category.internalName}</strong>
-                    <small>
-                      {de?.name} · {category._count.products} products ·{" "}
-                      {category.active ? "Active" : "Archived"}
-                    </small>
-                  </span>
-                  {category.active && (
-                    <ConfirmForm
-                      action={archiveCategoryAction}
-                      confirmMessage="Archive this empty category?"
+                <div key={category.id}>
+                  <div className="admin-list-row">
+                    <span>
+                      <strong>{en?.name ?? category.internalName}</strong>
+                      <small>
+                        {de?.name} · {category._count.products} products ·{" "}
+                        {category.active ? "Active" : "Archived"}
+                      </small>
+                    </span>
+                    {category.active && (
+                      <ConfirmForm
+                        action={archiveCategoryAction}
+                        confirmMessage="Archive this empty category?"
+                      >
+                        <input
+                          type="hidden"
+                          name="categoryId"
+                          value={category.id}
+                        />
+                        <button
+                          className="table-action"
+                          disabled={category._count.products > 0}
+                        >
+                          Archive
+                        </button>
+                      </ConfirmForm>
+                    )}
+                  </div>
+                  <details className="admin-inline-edit">
+                    <summary>Edit</summary>
+                    <AdminForm
+                      action={updateCategoryAction}
+                      submitLabel="Save category"
                     >
                       <input
                         type="hidden"
                         name="categoryId"
                         value={category.id}
                       />
-                      <button
-                        className="table-action"
-                        disabled={category._count.products > 0}
-                      >
-                        Archive
-                      </button>
-                    </ConfirmForm>
-                  )}
+                      <div className="admin-field-grid">
+                        <Field
+                          label="German name"
+                          name="nameDe"
+                          required
+                          defaultValue={de?.name}
+                        />
+                        <Field
+                          label="English name"
+                          name="nameEn"
+                          required
+                          defaultValue={en?.name}
+                        />
+                        <Field
+                          label="German slug"
+                          name="slugDe"
+                          required
+                          defaultValue={de?.slug}
+                        />
+                        <Field
+                          label="English slug"
+                          name="slugEn"
+                          required
+                          defaultValue={en?.slug}
+                        />
+                        <SelectField
+                          label="Parent category"
+                          name="parentId"
+                          defaultValue={category.parentId ?? ""}
+                          options={[
+                            { value: "", label: "No parent" },
+                            ...categories
+                              .filter((other) => other.id !== category.id)
+                              .map((other) => ({
+                                value: other.id,
+                                label:
+                                  other.translations.find(
+                                    (item) => item.locale === "en",
+                                  )?.name ?? other.internalName,
+                              })),
+                          ]}
+                        />
+                        <TextField
+                          label="German description"
+                          name="descriptionDe"
+                          defaultValue={de?.description}
+                        />
+                        <TextField
+                          label="English description"
+                          name="descriptionEn"
+                          defaultValue={en?.description}
+                        />
+                        <Field
+                          label="German SEO title"
+                          name="seoTitleDe"
+                          defaultValue={de?.seoTitle}
+                        />
+                        <Field
+                          label="English SEO title"
+                          name="seoTitleEn"
+                          defaultValue={en?.seoTitle}
+                        />
+                        <TextField
+                          label="German meta description"
+                          name="metaDescriptionDe"
+                          defaultValue={de?.metaDescription}
+                        />
+                        <TextField
+                          label="English meta description"
+                          name="metaDescriptionEn"
+                          defaultValue={en?.metaDescription}
+                        />
+                      </div>
+                    </AdminForm>
+                  </details>
                 </div>
               );
             })

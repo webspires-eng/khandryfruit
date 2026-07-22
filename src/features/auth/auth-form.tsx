@@ -7,6 +7,37 @@ import type { AppLocale } from "@/config/site";
 import { authClient, signIn, signUp } from "@/lib/auth/client";
 import { PasswordInput } from "@/components/ui/password-input";
 
+type AuthClientError =
+  | { code?: string; message?: string; status?: number }
+  | null
+  | undefined;
+
+/**
+ * Maps a Better Auth client error to a localized, user-facing message.
+ * Sign-in credential failures stay deliberately generic to avoid revealing
+ * whether an account exists; sign-up validation errors are surfaced so the
+ * user learns what to fix (e.g. email already in use, password too short).
+ */
+function messageForAuthError(
+  error: AuthClientError,
+  mode: "sign-in" | "sign-up",
+  t: (key: string) => string,
+): string {
+  const code = (error?.code ?? "").toUpperCase();
+  const status = error?.status;
+  if (code.startsWith("USER_ALREADY_EXISTS")) return t("emailInUse");
+  if (code.includes("PASSWORD_TOO_SHORT")) return t("passwordTooShort");
+  if (code === "INVALID_EMAIL") return t("invalidEmail");
+  if (code === "EMAIL_NOT_VERIFIED") return t("emailNotVerified");
+  if (status === 429 || code === "TOO_MANY_REQUESTS" || code === "RATE_LIMITED")
+    return t("tooManyRequests");
+  if (code.includes("LOCK")) return t("accountLocked");
+  if (code === "BANNED_USER" || code.includes("DISABLED"))
+    return t("accountDisabled");
+  if (mode === "sign-in") return t("authenticationFailed");
+  return error?.message || t("authenticationFailed");
+}
+
 export function AuthForm({
   locale,
   mode,
@@ -40,7 +71,7 @@ export function AuthForm({
           })
         : await authClient.twoFactor.verifyTotp({ code, trustDevice: false });
       if (result.error) {
-        setError(errors("authenticationFailed"));
+        setError(errors("invalidCode"));
         setPending(false);
         return;
       }
@@ -63,7 +94,7 @@ export function AuthForm({
               password,
             });
     if (result.error) {
-      setError(errors("authenticationFailed"));
+      setError(messageForAuthError(result.error, mode, errors));
       setPending(false);
       return;
     }
@@ -134,7 +165,7 @@ export function AuthForm({
             autoComplete={
               mode === "sign-up" ? "new-password" : "current-password"
             }
-            minLength={12}
+            minLength={mode === "sign-up" ? 12 : undefined}
             required
           />
           <small>

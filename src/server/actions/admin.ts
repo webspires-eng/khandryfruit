@@ -835,6 +835,63 @@ export async function createCategoryAction(formData: FormData) {
   }
 }
 
+export async function updateCategoryAction(formData: FormData) {
+  const session = await requireAdmin("categories");
+  try {
+    const id = z.string().min(1).parse(formData.get("categoryId"));
+    const input = categorySchema.parse(values(formData));
+    if (input.parentId === id) throw new Error("CATEGORY_CANNOT_BE_ITS_OWN_PARENT");
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.category.update({
+        where: { id },
+        data: { parentId: input.parentId || null },
+      });
+      const localized = [
+        {
+          locale: "de" as const,
+          name: input.nameDe,
+          slug: input.slugDe,
+          description: input.descriptionDe,
+          seoTitle: input.seoTitleDe,
+          metaDescription: input.metaDescriptionDe,
+        },
+        {
+          locale: "en" as const,
+          name: input.nameEn,
+          slug: input.slugEn,
+          description: input.descriptionEn,
+          seoTitle: input.seoTitleEn,
+          metaDescription: input.metaDescriptionEn,
+        },
+      ];
+      for (const translation of localized)
+        await tx.categoryTranslation.upsert({
+          where: {
+            categoryId_locale: { categoryId: id, locale: translation.locale },
+          },
+          update: translation,
+          create: { categoryId: id, ...translation },
+        });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "CATEGORY_UPDATED",
+          entityType: "Category",
+          entityId: id,
+          after: { nameDe: input.nameDe, nameEn: input.nameEn },
+          ...meta,
+        },
+      });
+    });
+    revalidatePath("/admin/categories");
+    revalidatePath("/admin/inventory");
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
 export async function archiveCategoryAction(formData: FormData) {
   const session = await requireAdmin("categories");
   try {
@@ -1021,6 +1078,74 @@ export async function createCouponAction(formData: FormData) {
   }
 }
 
+export async function updateCouponAction(formData: FormData) {
+  const session = await requireAdmin("coupons");
+  try {
+    const id = z.string().min(1).parse(formData.get("couponId"));
+    const input = couponAdminSchema.parse(values(formData));
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.coupon.update({
+        where: { id },
+        data: {
+          code: input.code,
+          type: input.type,
+          value: input.value,
+          active: input.active,
+          startsAt: input.startsAt ? new Date(input.startsAt) : null,
+          expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+          minimumOrderCents: input.minimumOrderCents,
+          usageLimit: input.usageLimit,
+          perCustomerLimit: input.perCustomerLimit,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "COUPON_UPDATED",
+          entityType: "Coupon",
+          entityId: id,
+          after: { code: input.code, active: input.active },
+          ...meta,
+        },
+      });
+    });
+    revalidatePath("/admin/coupons");
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function deleteCouponAction(formData: FormData) {
+  const session = await requireAdmin("coupons");
+  try {
+    const id = z.string().min(1).parse(formData.get("couponId"));
+    // A redeemed coupon is part of the order record; disable it instead of
+    // deleting so historical usage and totals stay intact.
+    const usages = await db.couponUsage.count({ where: { couponId: id } });
+    if (usages) throw new Error("COUPON_HAS_USAGES_DISABLE_INSTEAD");
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.couponCategory.deleteMany({ where: { couponId: id } });
+      await tx.coupon.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "COUPON_DELETED",
+          entityType: "Coupon",
+          entityId: id,
+          ...meta,
+        },
+      });
+    });
+    revalidatePath("/admin/coupons");
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
 export async function createGiftBoxAction(formData: FormData) {
   const session = await requireAdmin("gift-boxes");
   try {
@@ -1060,6 +1185,173 @@ export async function createGiftBoxAction(formData: FormData) {
       },
     });
     revalidatePath("/admin/gift-boxes");
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function updateGiftBoxAction(formData: FormData) {
+  const session = await requireAdmin("gift-boxes");
+  try {
+    const id = z.string().min(1).parse(formData.get("giftBoxId"));
+    const input = giftBoxAdminSchema.parse(values(formData));
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.giftBox.update({
+        where: { id },
+        data: {
+          nameDe: input.nameDe,
+          nameEn: input.nameEn,
+          slugDe: input.slugDe,
+          slugEn: input.slugEn,
+          descriptionDe: input.descriptionDe,
+          descriptionEn: input.descriptionEn,
+          seoTitleDe: input.seoTitleDe,
+          seoTitleEn: input.seoTitleEn,
+          metaDescriptionDe: input.metaDescriptionDe,
+          metaDescriptionEn: input.metaDescriptionEn,
+          sizeName: input.sizeName,
+          basePriceCents: input.basePriceCents,
+          capacityUnits: input.capacityUnits,
+          minItems: input.minItems,
+          maxItems: input.maxItems,
+          fixed: input.fixed,
+          active: input.active,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "GIFT_BOX_UPDATED",
+          entityType: "GiftBox",
+          entityId: id,
+          after: { nameDe: input.nameDe, active: input.active },
+          ...meta,
+        },
+      });
+    });
+    revalidatePath("/admin/gift-boxes");
+    revalidatePath(`/admin/gift-boxes/${id}`);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function deleteGiftBoxAction(formData: FormData) {
+  const session = await requireAdmin("gift-boxes");
+  try {
+    const id = z.string().min(1).parse(formData.get("giftBoxId"));
+    const configurations = await db.giftBoxConfiguration.count({
+      where: { giftBoxId: id },
+    });
+    if (configurations)
+      throw new Error("GIFT_BOX_HAS_CONFIGURATIONS_DEACTIVATE_INSTEAD");
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.giftBoxItem.deleteMany({ where: { giftBoxId: id } });
+      await tx.giftBox.delete({ where: { id } });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "GIFT_BOX_DELETED",
+          entityType: "GiftBox",
+          entityId: id,
+          ...meta,
+        },
+      });
+    });
+    revalidatePath("/admin/gift-boxes");
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function addGiftBoxItemAction(formData: FormData) {
+  const session = await requireAdmin("gift-boxes");
+  try {
+    const input = z
+      .object({
+        giftBoxId: z.string().min(1),
+        variantId: z.string().min(1),
+        quantity: z.coerce.number().int().min(1).max(50),
+        units: z.coerce.number().int().min(1).max(50).default(1),
+      })
+      .parse(values(formData));
+    const variant = await db.productVariant.findUnique({
+      where: { id: input.variantId },
+      select: { productId: true },
+    });
+    if (!variant) throw new Error("VARIANT_NOT_FOUND");
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.giftBoxItem.upsert({
+        where: {
+          giftBoxId_variantId: {
+            giftBoxId: input.giftBoxId,
+            variantId: input.variantId,
+          },
+        },
+        update: { quantity: input.quantity, units: input.units },
+        create: {
+          giftBoxId: input.giftBoxId,
+          productId: variant.productId,
+          variantId: input.variantId,
+          quantity: input.quantity,
+          units: input.units,
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "GIFT_BOX_ITEM_ADDED",
+          entityType: "GiftBox",
+          entityId: input.giftBoxId,
+          after: { variantId: input.variantId, quantity: input.quantity },
+          ...meta,
+        },
+      });
+    });
+    revalidatePath(`/admin/gift-boxes/${input.giftBoxId}`);
+    return { success: true as const };
+  } catch (error) {
+    return actionError(error);
+  }
+}
+
+export async function removeGiftBoxItemAction(formData: FormData) {
+  const session = await requireAdmin("gift-boxes");
+  try {
+    const input = z
+      .object({
+        giftBoxId: z.string().min(1),
+        variantId: z.string().min(1),
+      })
+      .parse(values(formData));
+    const meta = await requestMeta();
+    await db.$transaction(async (tx) => {
+      await tx.giftBoxItem.delete({
+        where: {
+          giftBoxId_variantId: {
+            giftBoxId: input.giftBoxId,
+            variantId: input.variantId,
+          },
+        },
+      });
+      await tx.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "GIFT_BOX_ITEM_REMOVED",
+          entityType: "GiftBox",
+          entityId: input.giftBoxId,
+          after: { variantId: input.variantId },
+          ...meta,
+        },
+      });
+    });
+    revalidatePath(`/admin/gift-boxes/${input.giftBoxId}`);
     return { success: true as const };
   } catch (error) {
     return actionError(error);

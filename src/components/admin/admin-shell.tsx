@@ -99,6 +99,9 @@ export function AdminShell({
 }) {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchScope, setSearchScope] = useState<
+    "products" | "orders" | "customers"
+  >("products");
   const pathname = usePathname();
   const router = useRouter();
   const segments = pathname.split("/").filter(Boolean);
@@ -267,17 +270,33 @@ export function AdminShell({
           }}
         >
           <div className="admin-search-dialog">
-            <form action="/admin/products">
+            <form action={`/admin/${searchScope}`}>
               <Search size={18} />
+              <label className="sr-only" htmlFor="admin-search-scope">
+                Search area
+              </label>
+              <select
+                id="admin-search-scope"
+                value={searchScope}
+                onChange={(event) =>
+                  setSearchScope(
+                    event.target.value as "products" | "orders" | "customers",
+                  )
+                }
+              >
+                <option value="products">Products</option>
+                <option value="orders">Orders</option>
+                <option value="customers">Customers</option>
+              </select>
               <label className="sr-only" htmlFor="admin-search">
-                Search products
+                Search {searchScope}
               </label>
               <input
                 id="admin-search"
                 name="q"
                 autoFocus
                 autoComplete="off"
-                placeholder="Search products, orders or customers"
+                placeholder={`Search ${searchScope}`}
               />
               <button
                 type="button"
@@ -288,7 +307,7 @@ export function AdminShell({
               </button>
             </form>
             <p>
-              Press <kbd>Enter</kbd> to search products · <kbd>Esc</kbd> to
+              Press <kbd>Enter</kbd> to search {searchScope} · <kbd>Esc</kbd> to
               close
             </p>
           </div>

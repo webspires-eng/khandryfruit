@@ -1,4 +1,4 @@
-import { AdminForm } from "@/components/admin/admin-form";
+import { AdminForm, ConfirmForm } from "@/components/admin/admin-form";
 import {
   AdminSection,
   Checkbox,
@@ -7,8 +7,15 @@ import {
 } from "@/components/admin/product-form";
 import { formatMoney } from "@/lib/commerce/money";
 import { db } from "@/lib/db/client";
-import { createCouponAction } from "@/server/actions/admin";
+import {
+  createCouponAction,
+  deleteCouponAction,
+  updateCouponAction,
+} from "@/server/actions/admin";
 import { requireAdmin } from "@/server/policies/authorization";
+
+const toLocalInput = (value: Date | null) =>
+  value ? value.toISOString().slice(0, 16) : undefined;
 
 export default async function CouponsPage() {
   await requireAdmin("coupons");
@@ -38,6 +45,7 @@ export default async function CouponsPage() {
               <th>Minimum</th>
               <th>Usage</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -67,6 +75,116 @@ export default async function CouponsPage() {
                   {c.usageLimit ? ` / ${c.usageLimit}` : ""}
                 </td>
                 <td>{c.active ? "Active" : "Disabled"}</td>
+                <td>
+                  <div className="admin-row-actions">
+                    <details className="admin-inline-edit">
+                      <summary>Edit</summary>
+                      <AdminForm
+                        action={updateCouponAction}
+                        submitLabel="Save coupon"
+                      >
+                        <input type="hidden" name="couponId" value={c.id} />
+                        <div className="admin-field-grid">
+                          <Field
+                            label="Code"
+                            name="code"
+                            required
+                            defaultValue={c.code}
+                          />
+                          <SelectField
+                            label="Discount type"
+                            name="type"
+                            required
+                            defaultValue={c.type}
+                            options={[
+                              {
+                                value: "PERCENTAGE",
+                                label: "Percentage (basis points)",
+                              },
+                              { value: "FIXED", label: "Fixed amount in cents" },
+                              {
+                                value: "FREE_SHIPPING",
+                                label: "Free shipping",
+                              },
+                            ]}
+                          />
+                          <Field
+                            label="Value"
+                            name="value"
+                            type="number"
+                            min={0}
+                            required
+                            defaultValue={String(c.value)}
+                          />
+                          <Field
+                            label="Starts at"
+                            name="startsAt"
+                            type="datetime-local"
+                            defaultValue={toLocalInput(c.startsAt)}
+                          />
+                          <Field
+                            label="Expires at"
+                            name="expiresAt"
+                            type="datetime-local"
+                            defaultValue={toLocalInput(c.expiresAt)}
+                          />
+                          <Field
+                            label="Minimum order in cents"
+                            name="minimumOrderCents"
+                            type="number"
+                            min={0}
+                            defaultValue={
+                              c.minimumOrderCents
+                                ? String(c.minimumOrderCents)
+                                : undefined
+                            }
+                          />
+                          <Field
+                            label="Total usage limit"
+                            name="usageLimit"
+                            type="number"
+                            min={1}
+                            defaultValue={
+                              c.usageLimit ? String(c.usageLimit) : undefined
+                            }
+                          />
+                          <Field
+                            label="Per-customer limit"
+                            name="perCustomerLimit"
+                            type="number"
+                            min={1}
+                            defaultValue={
+                              c.perCustomerLimit
+                                ? String(c.perCustomerLimit)
+                                : undefined
+                            }
+                          />
+                          <Checkbox
+                            name="active"
+                            label="Active"
+                            defaultChecked={c.active}
+                          />
+                        </div>
+                      </AdminForm>
+                    </details>
+                    <ConfirmForm
+                      action={deleteCouponAction}
+                      confirmMessage={
+                        c._count.usages
+                          ? "This coupon has been redeemed and cannot be deleted. Disable it via Edit instead."
+                          : "Delete this coupon permanently?"
+                      }
+                    >
+                      <input type="hidden" name="couponId" value={c.id} />
+                      <button
+                        className="table-action"
+                        disabled={c._count.usages > 0}
+                      >
+                        Delete
+                      </button>
+                    </ConfirmForm>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
