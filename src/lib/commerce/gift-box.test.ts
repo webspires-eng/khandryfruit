@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   calculateGiftBoxPricing,
+  formatGiftBoxContents,
   GiftBoxValidationError,
+  readGiftBoxContents,
   validateGiftBoxSelection,
   type GiftBoxEligibleVariant,
   type GiftBoxTemplate,
@@ -197,5 +199,67 @@ describe("gift box pricing", () => {
     });
     expect(pricing.packagingCents).toBe(0);
     expect(pricing.totalCents).toBe(3 * 899 + 599);
+  });
+});
+
+describe("gift box order contents", () => {
+  const snapshot = {
+    items: [
+      {
+        name: "Black Raisins",
+        quantity: 2,
+        weightGrams: 500,
+        unitPriceCents: 899,
+      },
+      {
+        name: "Afghan Figs",
+        quantity: 1,
+        weightGrams: 500,
+        unitPriceCents: 1299,
+      },
+    ],
+  };
+
+  it("reads the products recorded on the order", () => {
+    expect(readGiftBoxContents(snapshot)).toEqual([
+      { name: "Black Raisins", quantity: 2, weightGrams: 500 },
+      { name: "Afghan Figs", quantity: 1, weightGrams: 500 },
+    ]);
+  });
+
+  it("formats them for a single line", () => {
+    expect(formatGiftBoxContents(readGiftBoxContents(snapshot))).toBe(
+      "2× Black Raisins (500 g) · 1× Afghan Figs (500 g)",
+    );
+  });
+
+  it("survives malformed or legacy snapshots rather than throwing", () => {
+    // An order page must never break because an old row lacks the shape.
+    for (const bad of [
+      null,
+      undefined,
+      {},
+      { items: null },
+      { items: "x" },
+      42,
+      "text",
+    ])
+      expect(readGiftBoxContents(bad), JSON.stringify(bad)).toEqual([]);
+  });
+
+  it("skips entries without a usable name and defaults odd quantities", () => {
+    expect(
+      readGiftBoxContents({
+        items: [
+          { name: "", quantity: 2 },
+          { quantity: 3 },
+          { name: "Figs", quantity: 0 },
+          { name: "Raisins" },
+        ],
+      }),
+    ).toEqual([
+      { name: "Figs", quantity: 1, weightGrams: 0 },
+      { name: "Raisins", quantity: 1, weightGrams: 0 },
+    ]);
   });
 });

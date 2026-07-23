@@ -9,11 +9,49 @@ export const checkoutGiftBoxSchema = z.object({
   configurationId: z.string().min(1).max(128),
   quantity: z.number().int().min(1).max(5),
 });
+const optionalText = (max: number) =>
+  z.string().trim().max(max).optional().or(z.literal(""));
+/** Shipping recipient captured on our own checkout step, before Stripe. */
+export const checkoutAddressSchema = z.object({
+  firstName: z
+    .string()
+    .trim()
+    .min(2, "validation.tooShort")
+    .max(60, "validation.tooLong"),
+  lastName: z
+    .string()
+    .trim()
+    .min(2, "validation.tooShort")
+    .max(60, "validation.tooLong"),
+  company: optionalText(120),
+  line1: z
+    .string()
+    .trim()
+    .min(3, "validation.tooShort")
+    .max(160, "validation.tooLong"),
+  line2: optionalText(160),
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/, "validation.postalCode"),
+  city: z
+    .string()
+    .trim()
+    .min(2, "validation.tooShort")
+    .max(80, "validation.tooLong"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+[1-9]\d{7,14}$/, "validation.phone")
+    .optional()
+    .or(z.literal("")),
+});
 export const checkoutSchema = z
   .object({
     locale: localeSchema,
     email: z.string().email(),
     countryCode: z.literal("DE"),
+    shippingAddress: checkoutAddressSchema,
     shippingMethodId: z.string().min(1),
     couponCode: z.string().trim().toUpperCase().max(32).optional(),
     legalAccepted: z.literal(true),
@@ -39,18 +77,29 @@ export const contactMethodValues = ["EMAIL", "PHONE", "WHATSAPP"] as const;
 
 export const contactSchema = z.object({
   locale: localeSchema,
-  name: z.string().trim().min(2, "validation.tooShort").max(100, "validation.tooLong"),
+  name: z
+    .string()
+    .trim()
+    .min(2, "validation.tooShort")
+    .max(100, "validation.tooLong"),
   email: z.string().email("validation.email"),
   phone: z.string().trim().max(30, "validation.tooLong").optional(),
   orderNumber: z.string().trim().max(30, "validation.orderNumber").optional(),
   type: z.enum(enquiryTypeValues, "validation.selectOption"),
-  subject: z.string().trim().min(3, "validation.tooShort").max(150, "validation.tooLong"),
+  subject: z
+    .string()
+    .trim()
+    .min(3, "validation.tooShort")
+    .max(150, "validation.tooLong"),
   message: z
     .string()
     .trim()
     .min(10, "validation.messageLength")
     .max(2_000, "validation.messageLength"),
-  preferredContactMethod: z.enum(contactMethodValues, "validation.selectOption"),
+  preferredContactMethod: z.enum(
+    contactMethodValues,
+    "validation.selectOption",
+  ),
   consent: z.literal(true, "validation.consent"),
   // Honeypot: invisible to humans, bots tend to fill it.
   website: z.string().max(0).optional(),
@@ -82,21 +131,36 @@ export const wholesaleApplicationSchema = z
       .min(2, "validation.tooShort")
       .max(120, "validation.tooLong"),
     email: z.string().email("validation.email"),
-    phone: z.string().trim().regex(/^\+[1-9]\d{7,14}$/, "validation.phone"),
+    phone: z
+      .string()
+      .trim()
+      .regex(/^\+[1-9]\d{7,14}$/, "validation.phone"),
     businessAddress: z
       .string()
       .trim()
       .min(10, "validation.tooShort")
       .max(300, "validation.tooLong"),
-    city: z.string().trim().min(2, "validation.tooShort").max(80, "validation.tooLong"),
+    city: z
+      .string()
+      .trim()
+      .min(2, "validation.tooShort")
+      .max(80, "validation.tooLong"),
     postalCode: z
       .string()
       .trim()
       .min(3, "validation.tooShort")
       .max(12, "validation.tooLong"),
-    countryCode: z.string().trim().length(2, "validation.country").toUpperCase(),
+    countryCode: z
+      .string()
+      .trim()
+      .length(2, "validation.country")
+      .toUpperCase(),
     vatId: z.string().trim().max(30, "validation.tooLong").optional(),
-    registrationNumber: z.string().trim().max(60, "validation.tooLong").optional(),
+    registrationNumber: z
+      .string()
+      .trim()
+      .max(60, "validation.tooLong")
+      .optional(),
     businessType: z.enum(businessTypeValues, "validation.selectOption"),
     website: z.string().url("validation.url").optional().or(z.literal("")),
     monthlyOrderVolume: z
@@ -104,21 +168,29 @@ export const wholesaleApplicationSchema = z
       .trim()
       .min(1, "validation.selectOption")
       .max(80, "validation.tooLong"),
-    productsOfInterest: z.array(z.string().max(160)).min(1, "validation.selectAtLeastOne"),
+    productsOfInterest: z
+      .array(z.string().max(160))
+      .min(1, "validation.selectAtLeastOne"),
     deliveryCountries: z
       .array(z.string().trim().min(2).max(24))
       .min(1, "validation.selectAtLeastOne"),
-    preferredContactMethod: z.enum(contactMethodValues, "validation.selectOption"),
+    preferredContactMethod: z.enum(
+      contactMethodValues,
+      "validation.selectOption",
+    ),
     message: z.string().trim().max(2_000, "validation.tooLong").optional(),
     agreement: z.literal(true, "validation.consent"),
     accuracyConfirmed: z.literal(true, "validation.accuracy"),
     // Honeypot: invisible to humans, bots tend to fill it.
     faxNumber: z.string().max(0).optional(),
   })
-  .refine((data) => Boolean(data.vatId?.trim() || data.registrationNumber?.trim()), {
-    message: "validation.required",
-    path: ["vatId"],
-  });
+  .refine(
+    (data) => Boolean(data.vatId?.trim() || data.registrationNumber?.trim()),
+    {
+      message: "validation.required",
+      path: ["vatId"],
+    },
+  );
 
 export const giftOccasionValues = [
   "RAMADAN",
@@ -148,7 +220,9 @@ export const giftBoxConfigurationSchema = z.object({
     .max(24),
 });
 
-export type GiftBoxConfigurationInput = z.infer<typeof giftBoxConfigurationSchema>;
+export type GiftBoxConfigurationInput = z.infer<
+  typeof giftBoxConfigurationSchema
+>;
 
 export type ActionResult<T> =
   | { success: true; data: T }

@@ -55,7 +55,7 @@ export default async function ContactEnquiryPage({
             <dt>Order</dt>
             <dd>
               {relatedOrder ? (
-                <a href={`/admin/orders/${relatedOrder.id}`}>
+                <a href={`/admin/orders/${relatedOrder.number}`}>
                   {relatedOrder.number}
                 </a>
               ) : (

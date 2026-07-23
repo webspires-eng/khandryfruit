@@ -1,9 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import type Stripe from "stripe";
 import { db } from "@/lib/db/client";
-import { env } from "@/lib/env";
+import { env, stripeWebhookReady } from "@/lib/env";
 import { logger } from "@/lib/logging/logger";
 import { getStripe } from "@/lib/stripe/client";
+import { confirmOrderPayment } from "@/server/services/payment-confirmation";
+import { sendOrderConfirmationEmails } from "@/server/services/order-notifications";
+import { syncRefundsFromStripe } from "@/server/services/refunds";
 
 export async function POST(request: Request) {
   const correlationId = randomUUID();
@@ -14,6 +17,18 @@ export async function POST(request: Request) {
       { error: "Webhook configuration missing" },
       { status: 400 },
     );
+  // A placeholder secret rejects every delivery with an opaque signature error,
+  // leaving orders stuck unpaid with nothing in the log explaining why.
+  if (!stripeWebhookReady()) {
+    logger.error("stripe_webhook_secret_invalid", {
+      correlationId,
+      hint: "STRIPE_WEBHOOK_SECRET is a placeholder. Run `stripe listen --forward-to localhost:3001/api/stripe/webhook` and copy the whsec_ value it prints.",
+    });
+    return Response.json(
+      { error: "Webhook secret is not configured" },
+      { status: 500 },
+    );
+  }
   let event: Stripe.Event;
   try {
     event = getStripe().webhooks.constructEvent(
@@ -89,66 +104,17 @@ async function confirmCheckout(
 ) {
   const orderId = session.metadata?.orderId;
   if (!orderId || session.payment_status !== "paid") return;
-  await db.$transaction(async (tx) => {
-    const order = await tx.order.findUnique({
-      where: { id: orderId },
-      include: { reservations: true },
-    });
-    if (!order || order.paymentStatus === "PAID") return;
-    for (const reservation of order.reservations.filter(
-      (item) => !item.convertedAt && !item.releasedAt,
-    )) {
-      await tx.inventory.update({
-        where: { id: reservation.inventoryId },
-        data: {
-          onHand: { decrement: reservation.quantity },
-          reserved: { decrement: reservation.quantity },
-          version: { increment: 1 },
-          adjustments: {
-            create: {
-              type: "SALE",
-              quantity: -reservation.quantity,
-              reason: "Verified Stripe payment",
-              reference: eventId,
-            },
-          },
-        },
-      });
-      await tx.stockReservation.update({
-        where: { id: reservation.id },
-        data: { convertedAt: new Date() },
-      });
-    }
-    await tx.order.update({
-      where: { id: orderId },
-      data: {
-        status: "PAID",
-        paymentStatus: "PAID",
-        paidAt: new Date(),
-        payments: {
-          updateMany: {
-            where: { status: { in: ["PENDING", "PROCESSING"] } },
-            data: {
-              status: "PAID",
-              providerPaymentId:
-                typeof session.payment_intent === "string"
-                  ? session.payment_intent
-                  : session.payment_intent?.id,
-              paidAt: new Date(),
-            },
-          },
-        },
-        statusHistory: {
-          create: {
-            oldStatus: order.status,
-            newStatus: "PAID",
-            reason: "Stripe payment verified",
-          },
-        },
-      },
-    });
+  const confirmed = await confirmOrderPayment(db, orderId, {
+    paymentIntentId:
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id,
+    reference: eventId,
   });
-  logger.info("payment_confirmed", { orderId, stripeEventId: eventId });
+  // Only notify on the transition itself, never on a redelivered event.
+  // The key must match the order status the settlement writes — CONFIRMED.
+  if (confirmed) await sendOrderConfirmationEmails(orderId);
+  logger.info("checkout_confirmed", { orderId, stripeEventId: eventId });
 }
 async function failCheckout(session: Stripe.Checkout.Session) {
   const orderId = session.metadata?.orderId;
@@ -156,19 +122,13 @@ async function failCheckout(session: Stripe.Checkout.Session) {
   await db.order.update({
     where: { id: orderId },
     data: {
-      status: "PAYMENT_FAILED",
-      paymentStatus: "FAILED",
+      // The order stays PENDING and unpaid so the customer can retry; the
+      // failure itself is recorded on the Payment row.
+      paymentStatus: "UNPAID",
       payments: {
         updateMany: {
           where: { status: { in: ["PENDING", "PROCESSING"] } },
           data: { status: "FAILED" },
-        },
-      },
-      statusHistory: {
-        create: {
-          oldStatus: "PENDING_PAYMENT",
-          newStatus: "PAYMENT_FAILED",
-          reason: "Stripe asynchronous payment failed",
         },
       },
     },
@@ -186,22 +146,20 @@ async function failPayment(intent: Stripe.PaymentIntent) {
     },
   });
 }
+/**
+ * Reconciles refunds from Stripe.
+ *
+ * Previously this updated order status but created no Refund row, so a refund
+ * that failed to record locally left the refundable total unchanged and the
+ * same money could be refunded twice. Syncing the actual refund list makes this
+ * the recovery path for that case, and the record path for refunds issued
+ * straight from the Stripe dashboard.
+ */
 async function recordRefund(charge: Stripe.Charge) {
   const paymentIntent =
     typeof charge.payment_intent === "string"
       ? charge.payment_intent
       : charge.payment_intent?.id;
   if (!paymentIntent || charge.amount_refunded <= 0) return;
-  const payment = await db.payment.findUnique({
-    where: { providerPaymentId: paymentIntent },
-  });
-  if (!payment) return;
-  const full = charge.amount_refunded >= payment.amountCents;
-  await db.order.update({
-    where: { id: payment.orderId },
-    data: {
-      paymentStatus: full ? "REFUNDED" : "PARTIALLY_REFUNDED",
-      status: full ? "REFUNDED" : "PARTIALLY_REFUNDED",
-    },
-  });
+  await syncRefundsFromStripe(paymentIntent);
 }

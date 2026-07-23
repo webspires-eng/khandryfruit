@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { forbidden, redirect, unauthorized } from "next/navigation";
 
 import type { AdminArea } from "@/config/admin";
-import { canAccessAdmin } from "@/config/admin";
+import { canAccessAdmin, requiresTwoFactor } from "@/config/admin";
 import { auth } from "@/lib/auth/auth";
 
 export async function getSession() {
@@ -27,7 +27,7 @@ export async function requireAdmin(
   const role = String(session.user.role);
   if (
     process.env.NODE_ENV === "production" &&
-    (role === "ADMIN" || role === "SUPER_ADMIN") &&
+    requiresTwoFactor(role) &&
     !session.user.twoFactorEnabled
   )
     forbidden();

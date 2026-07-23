@@ -1248,12 +1248,30 @@ p {
   margin-bottom: 0.4rem;
 }
 .checkout-form input[type="email"],
+.checkout-form input[type="text"],
+.checkout-form input[type="tel"],
 .auth-form input {
   width: 100%;
   min-height: 3.1rem;
   border: 1px solid #cfc5b5;
   border-radius: 0.7rem;
   padding: 0.7rem 0.8rem;
+}
+.checkout-form .field {
+  margin-bottom: 1rem;
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.field-row.postal {
+  grid-template-columns: 0.5fr 1fr;
+}
+.field-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 0;
 }
 .selected-shipping {
   border: 2px solid var(--forest);
@@ -1518,7 +1536,9 @@ p {
   .product-main,
   .product-details,
   .cart-layout,
-  .checkout-grid {
+  .checkout-grid,
+  .field-row,
+  .field-row.postal {
     grid-template-columns: 1fr;
   }
   .story-grid {
@@ -4161,4 +4181,994 @@ p {
   .wholesale-intro-photo {
     order: -1;
   }
+}
+
+/* ==========================================================================
+   Customer order confirmation - /[locale]/order/success
+   ========================================================================== */
+.order-page {
+  padding-block: clamp(2rem, 5vw, 3.5rem) clamp(3rem, 7vw, 5rem);
+}
+
+/* --- Status hero --------------------------------------------------------- */
+.order-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  padding: clamp(1.75rem, 4vw, 3rem);
+  background: var(--forest);
+  color: var(--cream);
+  margin-bottom: clamp(1.25rem, 3vw, 2rem);
+}
+.order-hero::after {
+  content: "";
+  position: absolute;
+  inset-block: -40%;
+  right: -8%;
+  width: 34rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(196 154 74 / 0.28), transparent 68%);
+  pointer-events: none;
+}
+.order-hero.failed {
+  background: #4a1f1f;
+}
+.order-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 44rem;
+}
+.order-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.14);
+  border: 1px solid rgb(255 255 255 / 0.25);
+}
+.order-hero.paid .order-badge {
+  background: var(--gold);
+  color: var(--forest-deep);
+  border-color: transparent;
+}
+.order-hero h1 {
+  font-size: clamp(1.85rem, 4.2vw, 3.1rem);
+  line-height: 1.08;
+  margin: 1rem 0 0.6rem;
+}
+.order-hero-inner p {
+  margin: 0;
+  color: rgb(255 255 255 / 0.78);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+.order-hero-facts {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1rem 2rem;
+  margin: 2rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.18);
+}
+.order-hero-facts dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.6);
+  margin-bottom: 0.35rem;
+}
+.order-hero-facts dd {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Fulfilment stepper -------------------------------------------------- */
+.order-steps {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0 0 clamp(1.25rem, 3vw, 2rem);
+  padding: 1.4rem 1.2rem 1.2rem;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  background: var(--cream);
+}
+.order-step {
+  position: relative;
+  padding-top: 1.9rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.order-step::before {
+  content: "";
+  position: absolute;
+  top: 0.35rem;
+  left: 50%;
+  translate: -50% 0;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  background: var(--cream);
+  border: 2px solid #cfc5b5;
+  z-index: 1;
+}
+.order-step::after {
+  content: "";
+  position: absolute;
+  top: 0.78rem;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: var(--sand);
+}
+.order-step:first-child::after {
+  display: none;
+}
+.order-step.done {
+  color: var(--forest);
+  font-weight: 700;
+}
+.order-step.done::before {
+  background: var(--forest);
+  border-color: var(--forest);
+}
+.order-step.done::after {
+  background: var(--forest);
+}
+.order-step.current::before {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 0 0 4px rgb(196 154 74 / 0.25);
+}
+.order-step small {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+/* --- Layout -------------------------------------------------------------- */
+.order-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: clamp(1rem, 2.4vw, 1.5rem);
+  align-items: start;
+}
+.order-column {
+  display: grid;
+  gap: clamp(1rem, 2.4vw, 1.5rem);
+  min-width: 0;
+}
+.order-column.side {
+  position: sticky;
+  top: 6.5rem;
+}
+.order-card {
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-lg);
+  background: var(--cream);
+  padding: clamp(1.2rem, 2.6vw, 1.85rem);
+}
+.order-card > h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+  margin: 0 0 1.1rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--sand);
+}
+.order-card > h2 svg {
+  color: var(--forest);
+  flex: 0 0 auto;
+}
+
+/* --- Line items ---------------------------------------------------------- */
+.order-line {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding-block: 0.85rem;
+  border-bottom: 1px dashed var(--sand);
+}
+.order-line:last-of-type {
+  border-bottom: 0;
+}
+.order-line-qty {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 0.7rem;
+  background: var(--forest-soft);
+  color: var(--forest);
+  font-weight: 800;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+.order-line-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+.order-line-body strong {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+.order-line-body small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.order-line-gift {
+  font-style: italic;
+  color: var(--walnut);
+}
+.order-line-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- Totals -------------------------------------------------------------- */
+.order-totals {
+  margin: 1.2rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sand);
+}
+.order-totals > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 0.4rem;
+  font-size: 0.88rem;
+}
+.order-totals dt {
+  color: var(--muted);
+}
+.order-totals dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.order-totals .is-tax {
+  font-size: 0.76rem;
+}
+.order-totals .is-tax dd {
+  font-weight: 500;
+  color: var(--muted);
+}
+.order-totals .is-total {
+  margin-top: 0.7rem;
+  padding-top: 0.9rem;
+  border-top: 2px solid var(--forest);
+}
+.order-totals .is-total dt {
+  color: var(--charcoal);
+  font-size: 1rem;
+  font-weight: 800;
+}
+.order-totals .is-total dd {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--forest);
+}
+
+/* --- Fact lists (delivery, payment) -------------------------------------- */
+.order-facts {
+  margin: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+.order-facts > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 0.55rem;
+  border-bottom: 1px solid var(--sand);
+  font-size: 0.82rem;
+}
+.order-facts > div:last-child {
+  border-bottom: 0;
+}
+.order-facts dt {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.order-facts dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.order-address {
+  font-style: normal;
+  line-height: 1.65;
+  font-size: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+  margin-bottom: 1rem;
+}
+.order-address-name {
+  font-weight: 700;
+}
+.order-address-phone {
+  display: inline-block;
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+.order-note {
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 1rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--sand);
+}
+.order-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: var(--sand);
+  color: var(--charcoal);
+}
+.order-pill.is-paid {
+  background: var(--forest-soft);
+  color: var(--success);
+}
+.order-pill.is-pending {
+  background: var(--gold-light);
+  color: #7a5a17;
+}
+.order-pill.is-failed {
+  background: #fbe8e8;
+  color: var(--error);
+}
+
+/* --- Next steps ---------------------------------------------------------- */
+.order-next {
+  margin-top: clamp(1rem, 2.4vw, 1.5rem);
+}
+.order-next-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1.1rem;
+  list-style: none;
+  margin: 0 0 1.6rem;
+  padding: 0;
+  counter-reset: step;
+}
+.order-next-list li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.4rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.order-next-list li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -0.1rem;
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
+  background: var(--forest-soft);
+  color: var(--forest);
+  font-weight: 800;
+  font-size: 0.78rem;
+}
+.order-next-list strong {
+  display: block;
+  color: var(--charcoal);
+  font-size: 0.92rem;
+  margin-bottom: 0.15rem;
+}
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* --- Unavailable state --------------------------------------------------- */
+.order-unavailable {
+  max-width: 34rem;
+  margin-inline: auto;
+  text-align: center;
+  padding: clamp(2.5rem, 6vw, 4rem) 1.5rem;
+  border: 1px dashed #c9bda9;
+  border-radius: var(--radius-lg);
+}
+.order-unavailable h1 {
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+  margin-bottom: 0.75rem;
+}
+.order-unavailable p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.6rem;
+}
+.order-unavailable .order-actions {
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .order-grid {
+    grid-template-columns: 1fr;
+  }
+  .order-column.side {
+    position: static;
+  }
+  .order-steps {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    gap: 0;
+    padding: 1.2rem;
+  }
+  .order-step {
+    padding: 0 0 1.1rem 2rem;
+    text-align: left;
+  }
+  .order-step:last-child {
+    padding-bottom: 0;
+  }
+  .order-step::before {
+    top: 0.1rem;
+    left: 0;
+    translate: 0 0;
+  }
+  .order-step::after {
+    top: 0.1rem;
+    left: 0.42rem;
+    width: 2px;
+    height: 100%;
+  }
+  .order-step:first-child::after {
+    display: block;
+    top: -1.1rem;
+    height: 1.1rem;
+  }
+}
+
+/* ==========================================================================
+   Admin order detail - /admin/orders/[id]
+   ========================================================================== */
+.admin-order-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.admin-order-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.admin-order-metric {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #dde2da;
+  border-radius: 0.9rem;
+  background: white;
+}
+.admin-order-metric span {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.admin-order-metric strong {
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Fulfilment stepper -------------------------------------------------- */
+.admin-steps {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 1.1rem 1.2rem 0.9rem;
+  border: 1px solid #dde2da;
+  border-radius: 0.9rem;
+  background: white;
+}
+.admin-step {
+  position: relative;
+  padding-top: 1.5rem;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.admin-step::before {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 50%;
+  translate: -50% 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #cfd6cc;
+  z-index: 1;
+}
+.admin-step::after {
+  content: "";
+  position: absolute;
+  top: 0.52rem;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: #e7eae5;
+}
+.admin-step:first-child::after {
+  display: none;
+}
+.admin-step.done {
+  color: var(--forest);
+  font-weight: 800;
+}
+.admin-step.done::before {
+  background: var(--forest);
+  border-color: var(--forest);
+}
+.admin-step.done::after {
+  background: var(--forest);
+}
+.admin-step.current::before {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 0 0 3px rgb(196 154 74 / 0.25);
+}
+
+/* --- Card internals ------------------------------------------------------ */
+.admin-stack {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+.admin-card-body {
+  padding: 0.85rem 1rem;
+}
+.admin-subheader {
+  padding: 0.55rem 1rem;
+  border-top: 1px solid #e7eae5;
+  border-bottom: 1px solid #edf0eb;
+  background: #f6f8f5;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.admin-muted-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.admin-customer-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+}
+.admin-summary.flush > div {
+  padding-inline: 0;
+}
+.admin-summary dd a {
+  color: var(--forest);
+  font-weight: 700;
+}
+.admin-address {
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e7eae5;
+  border-radius: 0.7rem;
+  background: #f9faf8;
+  font-size: 0.78rem;
+}
+.admin-address address {
+  font-style: normal;
+  line-height: 1.6;
+  margin-top: 0.3rem;
+}
+.admin-address a {
+  display: inline-block;
+  margin-top: 0.35rem;
+  color: var(--forest);
+  font-weight: 700;
+}
+.admin-mono {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.7rem;
+  overflow-wrap: anywhere;
+}
+.admin-gift-message {
+  font-style: italic;
+  color: var(--walnut);
+}
+.admin-list-row > span:last-child a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.25rem;
+  color: var(--forest);
+  font-weight: 800;
+  font-size: 0.68rem;
+}
+
+@media (max-width: 1100px) {
+  .admin-order-metrics {
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .admin-steps {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    padding: 1rem;
+  }
+  .admin-step {
+    padding: 0 0 0.9rem 1.7rem;
+    text-align: left;
+  }
+  .admin-step:last-child {
+    padding-bottom: 0;
+  }
+  .admin-step::before {
+    top: 0.05rem;
+    left: 0;
+    translate: 0 0;
+  }
+  .admin-step::after {
+    top: 0.05rem;
+    left: 0.33rem;
+    width: 2px;
+    height: 100%;
+  }
+  .admin-step:first-child::after {
+    display: block;
+    top: -0.9rem;
+    height: 0.9rem;
+  }
+}
+
+.admin-callout {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e6d9b4;
+  border-left: 3px solid var(--gold);
+  border-radius: 0.7rem;
+  background: #fdf8ec;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: #5f4a1c;
+}
+.admin-callout strong {
+  color: #4a390f;
+}
+
+/* --- Admin order detail v2: one action, collapsed extras ----------------- */
+.admin-order .admin-two-column {
+  align-items: start;
+}
+.admin-contact-line {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+}
+.admin-contact-line a {
+  color: var(--forest);
+  font-weight: 700;
+}
+
+/* Primary action strip */
+.admin-next-step {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid #cfe0d4;
+  border-left: 3px solid var(--forest);
+  border-radius: 0.9rem;
+  background: linear-gradient(90deg, #f2f8f3, white 55%);
+}
+.admin-next-step-copy {
+  display: grid;
+  gap: 0.15rem;
+}
+.admin-next-step-copy strong {
+  font-size: 1rem;
+}
+.admin-next-step-copy small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.admin-next-step-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.admin-next-step-form > button {
+  flex: 0 0 auto;
+}
+.admin-next-step-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  flex: 1 1 22rem;
+}
+.admin-next-step-fields .admin-field {
+  margin: 0;
+}
+.admin-next-step-form .admin-form-error,
+.admin-next-step-form .admin-form-success {
+  flex: 1 1 100%;
+}
+
+/* Collapsed secondary actions */
+.admin-more-actions {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  max-width: 42rem;
+}
+.admin-disclosure {
+  border: 1px solid #dde2da;
+  border-radius: 0.8rem;
+  background: white;
+  overflow: hidden;
+}
+.admin-disclosure > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.85rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.admin-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.admin-disclosure > summary::before {
+  content: "ï¼‹";
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1;
+}
+.admin-disclosure[open] > summary::before {
+  content: "ï¼";
+}
+.admin-disclosure[open] > summary {
+  border-bottom: 1px solid #edf0eb;
+}
+.admin-disclosure > summary:hover {
+  background: #f6f8f5;
+}
+.admin-disclosure > summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+.admin-disclosure.is-danger > summary {
+  color: #9a2a2a;
+}
+.admin-disclosure-body {
+  padding: 1rem;
+}
+.admin-disclosure-hint {
+  margin: 0 0 0.9rem;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.admin-disclosure .admin-form {
+  margin: 0;
+}
+.admin-disclosure .admin-form-section > header {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .admin-next-step {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+}
+
+/* --- Next-step strip: primary action + condensed manual override --------- */
+.admin-next-step {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  align-items: stretch;
+  padding: 0;
+}
+.admin-next-step-main {
+  display: grid;
+  grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+.admin-next-step-main + .admin-status-inline {
+  border-top: 1px dashed #cfe0d4;
+}
+
+/* The manual override reads as one sentence, not a form. */
+.admin-status-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.8rem 1.25rem;
+}
+.admin-status-inline > label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.admin-status-inline > select {
+  min-height: 2.3rem;
+  padding: 0.3rem 1.9rem 0.3rem 0.6rem;
+  border: 1px solid #cfd6cc;
+  border-radius: 0.55rem;
+  background-color: white;
+  font: inherit;
+  font-size: 0.8rem;
+  flex: 0 0 auto;
+  min-width: 11rem;
+}
+.admin-status-inline > input[type="text"] {
+  min-height: 2.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #cfd6cc;
+  border-radius: 0.55rem;
+  background-color: white;
+  font: inherit;
+  font-size: 0.8rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.admin-status-inline > select:focus-visible,
+.admin-status-inline > input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.admin-status-inline > button {
+  flex: 0 0 auto;
+  min-height: 2.3rem;
+  padding-inline: 1.1rem;
+  font-size: 0.8rem;
+}
+.admin-status-inline .admin-form-error,
+.admin-status-inline .admin-form-success {
+  flex: 1 1 100%;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .admin-next-step-main {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+  .admin-status-inline > select,
+  .admin-status-inline > input[type="text"],
+  .admin-status-inline > button {
+    flex: 1 1 100%;
+  }
+}
+
+/* Disabled statuses stay visible so the whole lifecycle is legible. */
+.admin-status-inline > select optgroup {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+.admin-status-inline > select option {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--charcoal);
+}
+.admin-status-inline > select option:disabled {
+  color: #9aa398;
+}
+
+/* Packaging picker on the curated gift-box detail page */
+.fixed-box-packaging {
+  margin-bottom: 1.4rem;
+}
+.fixed-box-packaging h3 {
+  font-size: 1rem;
+  margin: 0 0 0.2rem;
+}
+.fixed-box-packaging .field-hint {
+  margin: 0 0 0.7rem;
+}
+.fixed-box-total {
+  margin: 1.1rem 0 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--sand);
+  border-radius: var(--radius-md);
+  background: var(--ivory);
+}
+.fixed-box-total > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.3rem;
+  font-size: 0.85rem;
+}
+.fixed-box-total dt {
+  color: var(--muted);
+}
+.fixed-box-total dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.fixed-box-total .is-total {
+  margin-top: 0.4rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--sand);
+  font-weight: 800;
+}
+.fixed-box-total .is-total dt {
+  color: var(--charcoal);
+}
+.fixed-box-total .is-total dd {
+  font-size: 1.05rem;
+  color: var(--forest);
+}
+
+/* Gift-box contents listed on order lines (admin and customer) */
+.admin-box-content,
+.order-line-content {
+  color: var(--muted);
+}
+.order-line-content {
+  font-size: 0.74rem;
 }

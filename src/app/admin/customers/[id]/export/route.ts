@@ -36,6 +36,9 @@ export async function GET(
           taxCents: true,
           totalCents: true,
           createdAt: true,
+          // Guest-checkout delivery details are personal data too, so a
+          // subject-access export has to include them.
+          addresses: true,
         },
       },
       wholesaleApplications: true,

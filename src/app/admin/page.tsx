@@ -44,9 +44,7 @@ export default async function AdminPage() {
       _avg: { totalCents: true },
     }),
     db.order.count({ where: { paymentStatus: "PAID" } }),
-    db.order.count({
-      where: { status: { in: ["PENDING_PAYMENT", "PAYMENT_FAILED"] } },
-    }),
+    db.order.count({ where: { status: "PENDING", paymentStatus: "UNPAID" } }),
     db.user.count({
       where: { role: { in: ["CUSTOMER", "WHOLESALE_CUSTOMER"] } },
     }),
@@ -268,7 +266,7 @@ export default async function AdminPage() {
           {recentOrders.map((order) => (
             <Link
               className="admin-list-row"
-              href={`/admin/orders/${order.id}` as Route}
+              href={`/admin/orders/${order.number}` as Route}
               key={order.id}
             >
               <span>

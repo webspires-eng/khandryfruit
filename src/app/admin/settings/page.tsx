@@ -11,7 +11,7 @@ import { AdminSection } from "@/components/admin/product-form";
 import { SettingField } from "@/components/admin/setting-field";
 import { canAccessAdmin, type AdminArea } from "@/config/admin";
 import { db } from "@/lib/db/client";
-import { env } from "@/lib/env";
+import { env, stripeWebhookReady } from "@/lib/env";
 import { requireAdmin } from "@/server/policies/authorization";
 
 type TabId = "business" | "commerce" | "brand" | "integrations" | "areas";
@@ -357,12 +357,12 @@ export default async function SettingsPage({
     {
       name: "Stripe",
       detail: "Payments and webhook signature verification.",
-      ok: Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET),
+      ok: Boolean(env.STRIPE_SECRET_KEY) && stripeWebhookReady(),
     },
     {
       name: "Email",
-      detail: "Transactional email delivery via AWS SES.",
-      ok: Boolean(env.AWS_SES_FROM_EMAIL),
+      detail: "Transactional email delivery via SMTP.",
+      ok: Boolean(env.SMTP_HOST && env.SMTP_FROM_EMAIL),
     },
     {
       name: "Cloudflare R2",

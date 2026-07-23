@@ -6,6 +6,7 @@ import {
   SelectField,
   TextField,
 } from "@/components/admin/product-form";
+import { formatAddressLines } from "@/lib/commerce/address";
 import { formatMoney } from "@/lib/commerce/money";
 import { db } from "@/lib/db/client";
 import {
@@ -69,11 +70,13 @@ export default async function CustomerPage({
           </p>
           {user.addresses.map((a) => (
             <address key={a.id}>
-              {a.firstName} {a.lastName}
-              <br />
-              {a.line1}
-              <br />
-              {a.postalCode} {a.city}, {a.countryCode}
+              {formatAddressLines(a).map((line) => (
+                <span key={line}>
+                  {line}
+                  <br />
+                </span>
+              ))}
+              {a.phone && <span>{a.phone}</span>}
             </address>
           ))}
         </section>

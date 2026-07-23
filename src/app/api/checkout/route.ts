@@ -13,6 +13,7 @@ import { logger } from "@/lib/logging/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { rejectUntrustedOrigin } from "@/lib/security/origin";
 import { trustedClientIp } from "@/lib/security/client-ip";
+import { releaseOrderReservations } from "@/server/services/stock-reservations";
 
 const CHECKOUT_RATE_LIMIT = { limit: 10, windowMs: 10 * 60_000 };
 
@@ -55,6 +56,9 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     const input = parsed.data;
+    const shippingAddress = input.shippingAddress;
+    const recipientName =
+      `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim();
     // Gift boxes are re-validated and re-priced from the database — stored
     // and client-side totals are never trusted.
     const giftBoxLines = await loadGiftBoxCheckoutLines(
@@ -103,12 +107,11 @@ export async function POST(request: Request) {
     const accessTokenHash = createHash("sha256")
       .update(accessToken)
       .digest("hex");
-    const orderNumber = `KDF-${new Date().getUTCFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
+    // `number` is assigned by the database sequence — see schema default.
     const order = await db.$transaction(
       async (tx) => {
         const created = await tx.order.create({
           data: {
-            number: orderNumber,
             email: input.email,
             locale: input.locale,
             subtotalCents: calculation.subtotalCents,
@@ -135,12 +138,23 @@ export async function POST(request: Request) {
                 lineTotalCents: line.lineTotalCents,
               })),
             },
+            addresses: {
+              create: {
+                type: "SHIPPING",
+                firstName: shippingAddress.firstName,
+                lastName: shippingAddress.lastName,
+                company: shippingAddress.company || null,
+                line1: shippingAddress.line1,
+                line2: shippingAddress.line2 || null,
+                postalCode: shippingAddress.postalCode,
+                city: shippingAddress.city,
+                countryCode: input.countryCode,
+                phone: shippingAddress.phone || null,
+              },
+            },
             payments: { create: { amountCents: calculation.totalCents } },
             statusHistory: {
-              create: {
-                newStatus: "PENDING_PAYMENT",
-                reason: "Checkout created",
-              },
+              create: { newStatus: "PENDING", reason: "Checkout created" },
             },
             giftBoxOrderItems: {
               create: giftBoxLines.map((box) => ({
@@ -199,8 +213,9 @@ export async function POST(request: Request) {
         {
           mode: "payment",
           customer_email: input.email,
+          // The shipping address is collected and stored on our own step, so
+          // Stripe only needs the billing address for the payment itself.
           billing_address_collection: "required",
-          shipping_address_collection: { allowed_countries: ["DE"] },
           line_items: [
             ...calculation.lines.map((line) => ({
               quantity: line.quantity,
@@ -240,6 +255,19 @@ export async function POST(request: Request) {
           cancel_url: `${env.NEXT_PUBLIC_SITE_URL}/${input.locale}/order/cancelled?order=${order.number}`,
           expires_at: Math.floor(reservationExpiresAt.getTime() / 1000),
           payment_intent_data: {
+            shipping: {
+              name: recipientName,
+              ...(shippingAddress.phone
+                ? { phone: shippingAddress.phone }
+                : {}),
+              address: {
+                line1: shippingAddress.line1,
+                line2: shippingAddress.line2 || undefined,
+                postal_code: shippingAddress.postalCode,
+                city: shippingAddress.city,
+                country: input.countryCode,
+              },
+            },
             metadata: {
               orderId: order.id,
               orderNumber: order.number,
@@ -267,7 +295,7 @@ export async function POST(request: Request) {
         data: { url: session.url },
       });
     } catch (stripeError) {
-      await releaseOrderReservations(order.id);
+      await rollbackOrder(order.id);
       logger.error("checkout_session_failed", {
         correlationId,
         orderId: order.id,
@@ -289,29 +317,15 @@ export async function POST(request: Request) {
   }
 }
 
-async function releaseOrderReservations(orderId: string) {
+/** Rolls a failed checkout back: stock returns to the shelf, order is closed. */
+async function rollbackOrder(orderId: string) {
   await db.$transaction(async (tx) => {
-    const reservations = await tx.stockReservation.findMany({
-      where: { orderId, releasedAt: null, convertedAt: null },
-    });
-    for (const reservation of reservations) {
-      await tx.inventory.update({
-        where: { id: reservation.inventoryId },
-        data: {
-          reserved: { decrement: reservation.quantity },
-          version: { increment: 1 },
-        },
-      });
-    }
-    await tx.stockReservation.updateMany({
-      where: { orderId, releasedAt: null, convertedAt: null },
-      data: { releasedAt: new Date() },
-    });
+    await releaseOrderReservations(tx, orderId);
     await tx.order.update({
       where: { id: orderId },
       data: {
         status: "CANCELLED",
-        paymentStatus: "CANCELLED",
+        paymentStatus: "UNPAID",
         cancelledAt: new Date(),
       },
     });

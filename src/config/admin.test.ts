@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canAccessAdmin, visibleAdminAreas } from "./admin";
+import { canAccessAdmin, requiresTwoFactor, visibleAdminAreas } from "./admin";
 
 describe("admin role permissions", () => {
   it("denies customer roles", () => {
@@ -20,5 +20,21 @@ describe("admin role permissions", () => {
     expect(canAccessAdmin("ADMIN", "system-health")).toBe(false);
     expect(canAccessAdmin("SUPER_ADMIN", "settings")).toBe(true);
     expect(visibleAdminAreas("SUPER_ADMIN")).toHaveLength(21);
+  });
+});
+
+describe("two-factor requirement", () => {
+  it("requires a second factor for every role that can change data", () => {
+    // ORDER_MANAGER issues refunds and was previously exempt.
+    expect(requiresTwoFactor("ORDER_MANAGER")).toBe(true);
+    expect(requiresTwoFactor("CONTENT_EDITOR")).toBe(true);
+    expect(requiresTwoFactor("ADMIN")).toBe(true);
+    expect(requiresTwoFactor("SUPER_ADMIN")).toBe(true);
+  });
+
+  it("does not require it of roles with no admin access", () => {
+    expect(requiresTwoFactor("CUSTOMER")).toBe(false);
+    expect(requiresTwoFactor("WHOLESALE_CUSTOMER")).toBe(false);
+    expect(requiresTwoFactor("NOT_A_ROLE")).toBe(false);
   });
 });

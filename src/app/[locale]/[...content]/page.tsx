@@ -138,17 +138,7 @@ const pages: Record<
     ],
     noindex: true,
   },
-  "order/success": {
-    de: [
-      "Zahlung wird bestätigt",
-      "Wir prüfen die Zahlung anhand des signierten Stripe-Webhooks. Diese Seite allein markiert keine Bestellung als bezahlt.",
-    ],
-    en: [
-      "Your payment is being confirmed",
-      "We verify payment through the signed Stripe webhook. This page alone never marks an order as paid.",
-    ],
-    noindex: true,
-  },
+  // "order/success" is a real route now — see app/[locale]/order/success.
 };
 
 export async function generateMetadata({

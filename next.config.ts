@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: true,
+  // nodemailer is Node-only and must not be traced into the bundler.
+  serverExternalPackages: ["nodemailer"],
   experimental: {
     authInterrupts: true,
     serverActions: {

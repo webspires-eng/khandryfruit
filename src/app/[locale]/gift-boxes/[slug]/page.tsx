@@ -3,13 +3,16 @@ import { Gift } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
-import { localizedPath } from "@/config/routes";
+import { localizedHref, localizedPath } from "@/config/routes";
 import { isLocale } from "@/config/site";
 import { FixedGiftBoxPurchase } from "@/features/gift-boxes/fixed-box-purchase";
 import { formatMoney } from "@/lib/commerce/money";
 import { giftOccasionValues } from "@/lib/validation/schemas";
 import { Link } from "@/i18n/navigation";
-import { getGiftBoxBySlug } from "@/server/repositories/gift-boxes";
+import {
+  getGiftBoxBySlug,
+  getPackagingOptions,
+} from "@/server/repositories/gift-boxes";
 
 export async function generateMetadata({
   params,
@@ -44,10 +47,11 @@ export default async function GiftBoxDetailPage({
   const { locale, slug } = await params;
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
-  const [t, tCommon, box] = await Promise.all([
+  const [t, tCommon, box, packaging] = await Promise.all([
     getTranslations("giftBoxes"),
     getTranslations("common"),
     getGiftBoxBySlug(locale, slug),
+    getPackagingOptions(locale),
   ]);
   if (!box) notFound();
   if (process.env.NODE_ENV === "production" && box.status !== "ACTIVE")
@@ -141,8 +145,20 @@ export default async function GiftBoxDetailPage({
               locale={locale}
               slug={box.slug}
               available={box.available}
+              basePriceCents={box.priceCents}
+              packaging={packaging}
             />
           </div>
+
+          {/* Swap or add products: opens the builder pre-filled with this
+              box's contents, rather than duplicating the picker here. */}
+          <a
+            className="button secondary full"
+            href={`${localizedHref("giftBoxBuilder", locale)}?from=${encodeURIComponent(box.slug)}`}
+          >
+            {t("detail.customise")}
+          </a>
+          <p className="muted small-note">{t("detail.customiseHint")}</p>
 
           <Link
             className="text-link"

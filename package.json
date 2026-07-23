@@ -22,14 +22,16 @@
     "db:status": "prisma migrate status",
     "db:seed": "prisma db seed",
     "db:seed:production": "tsx prisma/seed-production.ts",
+    "db:publish-dev": "tsx scripts/publish-dev-products.ts",
+    "db:simulate-payment": "tsx scripts/simulate-payment.ts",
     "db:studio": "prisma studio",
     "db:audit-localisation": "tsx scripts/audit-localisation.ts",
     "db:repair-localisation": "tsx scripts/audit-localisation.ts --apply",
-    "check": "npm run db:validate && npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run db:validate && npm run lint && npm run typecheck && npm run test && npm run build",
+    "dev:fresh": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && prisma generate && next dev -p 3001"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1087.0",
-    "@aws-sdk/client-sesv2": "^3.1087.0",
     "@aws-sdk/s3-request-presigner": "^3.1087.0",
     "@hookform/resolvers": "^5.4.0",
     "@prisma/adapter-pg": "^7.8.0",
@@ -42,6 +44,7 @@
     "lucide-react": "^1.24.0",
     "next": "16.2.10",
     "next-intl": "^4.13.2",
+    "nodemailer": "^9.0.3",
     "papaparse": "^5.5.4",
     "pg": "^8.22.0",
     "react": "19.2.4",
@@ -57,6 +60,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^8.0.1",
     "@types/papaparse": "^5.5.2",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",

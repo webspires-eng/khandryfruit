@@ -326,7 +326,9 @@
       "adding": "Wird hinzugefügt…",
       "outOfStock": "Derzeit nicht verfügbar",
       "backToCatalogue": "Alle Geschenkboxen",
-      "priceNote": "Preis inkl. MwSt., soweit anwendbar, zzgl. Versand."
+      "priceNote": "Preis inkl. MwSt., soweit anwendbar, zzgl. Versand.",
+      "customise": "Diese Box anpassen",
+      "customiseHint": "Öffnet den Konfigurator mit diesen Produkten bereits ausgewählt – Artikel tauschen, Größe ändern oder ergänzen."
     },
     "empty": {
       "title": "Noch keine Geschenkboxen verfügbar",
@@ -521,6 +523,55 @@
       "subject": "Neue Kontaktanfrage: {subject}",
       "intro": "Eine neue Kontaktanfrage wurde eingereicht.",
       "action": "Die Details finden Sie im Adminbereich."
+    },
+    "orderStatus": {
+      "subject": "Bestellung {order}: {status}",
+      "greeting": "Hallo {name},",
+      "statusLabel": {
+        "CONFIRMED": "Zahlung bestätigt",
+        "PROCESSING": "in Vorbereitung",
+        "SHIPPED": "unterwegs",
+        "DELIVERED": "zugestellt",
+        "COMPLETED": "abgeschlossen",
+        "CANCELLED": "storniert",
+        "REFUNDED": "erstattet"
+      },
+      "intro": {
+        "CONFIRMED": "wir haben Ihre Zahlung für die Bestellung {order} erhalten. Wir bereiten Ihr Paket in Kürze vor.",
+        "PROCESSING": "wir bereiten die Bestellung {order} gerade in unserem Lager in Duisburg vor.",
+        "SHIPPED": "die Bestellung {order} wurde an den Versanddienstleister übergeben und ist unterwegs.",
+        "DELIVERED": "die Bestellung {order} wurde als zugestellt markiert. Wir wünschen Ihnen viel Freude mit Ihren Trockenfrüchten.",
+        "COMPLETED": "die Bestellung {order} ist abgeschlossen und die Widerrufsfrist ist abgelaufen. Vielen Dank für Ihren Einkauf.",
+        "CANCELLED": "die Bestellung {order} wurde storniert. Reservierter Bestand wurde freigegeben, und eine autorisierte Zahlung wird auf Ihr ursprüngliches Zahlungsmittel zurückgebucht.",
+        "REFUNDED": "für die Bestellung {order} wurde eine Erstattung veranlasst. Je nach Bank kann es einige Werktage dauern, bis der Betrag sichtbar ist."
+      },
+      "total": "Bestellsumme: {total}",
+      "tracking": "Versanddienstleister: {provider} · Sendungsnummer: {number}",
+      "trackingUrl": "Sendung verfolgen: {url}",
+      "outro": "Falls etwas nicht stimmt, antworten Sie einfach auf diese E-Mail. Wir kümmern uns darum.",
+      "signature": "Herzliche Grüße, Khan Dry Fruit, Duisburg"
+    },
+    "order": {
+      "subtotal": "Zwischensumme",
+      "discount": "Rabatt",
+      "shipping": "Versand",
+      "tax": "Enthaltene MwSt.",
+      "total": "Gesamt",
+      "deliveryTo": "Lieferadresse",
+      "receipt": {
+        "subject": "Ihre Bestellung {order} bei Khan Dry Fruit",
+        "greeting": "Hallo {name},",
+        "intro": "vielen Dank für Ihre Bestellung. Wir haben Ihre Zahlung erhalten und die Bestellung {order} ist bestätigt. Das haben Sie bestellt:",
+        "track": "Ihre Bestellung können Sie hier verfolgen: {url}",
+        "outro": "Sobald Ihr Paket unterwegs ist, melden wir uns erneut. Falls etwas nicht stimmt, antworten Sie einfach auf diese E-Mail.",
+        "signature": "Herzliche Grüße, Khan Dry Fruit, Duisburg"
+      },
+      "admin": {
+        "subject": "Neue Bestellung {order} — {total}",
+        "intro": "Eine neue Bestellung {order} wurde bezahlt, Gesamtbetrag {total}.",
+        "action": "Im Adminbereich öffnen: {url}"
+      },
+      "shippingFree": "Kostenlos"
     }
   }
 }

@@ -5,19 +5,27 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import Papa from "papaparse";
+import type { Prisma } from "@generated/prisma/client";
 import { db } from "@/lib/db/client";
 import {
-  assertOrderTransition,
+  isRecommendedTransition,
+  orderTransitions,
+  ORDER_STATUSES,
   type DomainOrderStatus,
 } from "@/lib/commerce/order-state";
+import { confirmOrderPayment } from "@/server/services/payment-confirmation";
+import { issueRefund } from "@/server/services/refunds";
+import { releaseOrderReservations } from "@/server/services/stock-reservations";
+import {
+  sendOrderConfirmationEmails,
+  sendOrderStatusEmail,
+} from "@/server/services/order-notifications";
 import {
   applyStockAdjustment,
   assertWholesaleTransition,
-  validateRefund,
   type WholesaleState,
 } from "@/lib/commerce/admin-rules";
 import { slugify } from "@/lib/slug";
-import { getStripe } from "@/lib/stripe/client";
 import {
   adminProductSchema,
   adminVariantSchema,
@@ -28,7 +36,19 @@ import {
   wholesaleDecisionSchema,
 } from "@/lib/validation/admin-schemas";
 import { requireAdmin } from "@/server/policies/authorization";
+import { isSafeUrl } from "@/lib/security/safe-url";
 import { getProductReadiness } from "@/server/services/product-readiness";
+
+/** The order detail route accepts both the short number and the cuid. */
+async function revalidateOrder(orderId: string) {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    select: { number: true },
+  });
+  if (order) revalidatePath(`/admin/orders/${order.number}`);
+  revalidatePath(`/admin/orders/${orderId}`);
+  revalidatePath("/admin/orders");
+}
 
 function values(formData: FormData) {
   return Object.fromEntries(formData.entries());
@@ -840,7 +860,8 @@ export async function updateCategoryAction(formData: FormData) {
   try {
     const id = z.string().min(1).parse(formData.get("categoryId"));
     const input = categorySchema.parse(values(formData));
-    if (input.parentId === id) throw new Error("CATEGORY_CANNOT_BE_ITS_OWN_PARENT");
+    if (input.parentId === id)
+      throw new Error("CATEGORY_CANNOT_BE_ITS_OWN_PARENT");
     const meta = await requestMeta();
     await db.$transaction(async (tx) => {
       await tx.category.update({
@@ -924,15 +945,10 @@ export async function transitionOrderAction(formData: FormData) {
   const session = await requireAdmin("orders");
   try {
     const orderId = z.string().min(1).parse(formData.get("orderId"));
+    // Any status is reachable: shops need to correct records after the fact.
+    // This is safe because `status` carries no money — `paymentStatus` does.
     const next = z
-      .enum([
-        "PROCESSING",
-        "PACKED",
-        "SHIPPED",
-        "DELIVERED",
-        "CANCELLED",
-        "RETURN_REQUESTED",
-      ])
+      .enum(ORDER_STATUSES as [DomainOrderStatus, ...DomainOrderStatus[]])
       .parse(formData.get("status"));
     const note = z
       .string()
@@ -940,40 +956,94 @@ export async function transitionOrderAction(formData: FormData) {
       .optional()
       .parse(formData.get("note") || undefined);
     const meta = await requestMeta();
-    await db.$transaction(async (tx) => {
-      const order = await tx.order.findUniqueOrThrow({
-        where: { id: orderId },
+    const current = await db.order.findUniqueOrThrow({
+      where: { id: orderId },
+    });
+    if (current.status === next) return { success: true as const };
+
+    const offPath = !isRecommendedTransition(
+      current.status as DomainOrderStatus,
+      next,
+    );
+
+    // Confirming an unpaid order settles it, so stock converts from reserved to
+    // sold and the payment row closes — the same work the Stripe webhook does.
+    if (next === "CONFIRMED" && current.paymentStatus === "UNPAID") {
+      await confirmOrderPayment(db, orderId, {
+        reference: "admin_" + session.user.id,
       });
-      assertOrderTransition(order.status as DomainOrderStatus, next);
+      await db.auditLog.create({
+        data: {
+          actorId: session.user.id,
+          action: "ORDER_MARKED_PAID_MANUALLY",
+          entityType: "Order",
+          entityId: orderId,
+          before: { status: current.status, paymentStatus: "UNPAID" },
+          after: { status: "CONFIRMED", paymentStatus: "PAID", note },
+          ...meta,
+        },
+      });
+      await sendOrderConfirmationEmails(orderId);
+      await revalidateOrder(orderId);
+      return { success: true as const };
+    }
+
+    // Annotated with the Prisma input type on purpose: a bare object spread
+    // into `data` skips excess-property checking, which is how a stamp for a
+    // column that did not exist reached runtime.
+    const now = new Date();
+    const stamps: Prisma.OrderUpdateInput =
+      next === "SHIPPED"
+        ? { shippedAt: now }
+        : next === "DELIVERED"
+          ? { deliveredAt: now }
+          : next === "COMPLETED"
+            ? { completedAt: now }
+            : next === "CANCELLED"
+              ? { cancelledAt: now }
+              : {};
+    await db.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: orderId },
         data: {
           status: next,
+          ...stamps,
           statusHistory: {
             create: {
-              oldStatus: order.status,
+              oldStatus: current.status,
               newStatus: next,
               actorId: session.user.id,
-              reason: "Admin fulfilment update",
+              reason: offPath
+                ? "Admin correction (out of sequence)"
+                : "Admin fulfilment update",
               internalNote: note,
             },
           },
         },
       });
+      // Cancelling frees stock immediately instead of waiting for the sweeper.
+      if (next === "CANCELLED") await releaseOrderReservations(tx, orderId);
       await tx.auditLog.create({
         data: {
           actorId: session.user.id,
-          action: "ORDER_STATUS_CHANGED",
+          action: offPath
+            ? "ORDER_STATUS_CHANGED_OUT_OF_SEQUENCE"
+            : "ORDER_STATUS_CHANGED",
           entityType: "Order",
           entityId: orderId,
-          before: { status: order.status },
+          before: {
+            status: current.status,
+            paymentStatus: current.paymentStatus,
+          },
           after: { status: next, note },
           ...meta,
         },
       });
     });
-    revalidatePath(`/admin/orders/${orderId}`);
-    revalidatePath("/admin/orders");
+    await sendOrderStatusEmail(orderId, next, {
+      includeTracking: next === "SHIPPED",
+    });
+    await revalidateOrder(orderId);
     return { success: true as const };
   } catch (error) {
     return actionError(error);
@@ -1368,9 +1438,14 @@ export async function addTrackingAction(formData: FormData) {
       .min(3)
       .max(120)
       .parse(formData.get("trackingNumber"));
+    // Must reject javascript:/data: — this value is rendered as an href in the
+    // admin and mailed to the customer as a link.
     const trackingUrl = z
       .string()
       .url()
+      .refine((value) => isSafeUrl(value), {
+        message: "Tracking URL must be an https link.",
+      })
       .optional()
       .parse(formData.get("trackingUrl") || undefined);
     const provider = z
@@ -1380,6 +1455,17 @@ export async function addTrackingAction(formData: FormData) {
       .max(50)
       .parse(formData.get("provider"));
     const meta = await requestMeta();
+    const order = await db.order.findUniqueOrThrow({ where: { id: orderId } });
+    // Handing a parcel to the carrier IS shipping the order. Recording the
+    // shipment and moving the status used to be two separate forms, so an
+    // order could sit "packed" with tracking already issued, or be marked
+    // shipped with nothing for the customer to track.
+    const shipped =
+      order.status !== "SHIPPED" &&
+      (
+        orderTransitions[order.status as DomainOrderStatus] as readonly string[]
+      ).includes("SHIPPED");
+
     await db.$transaction(async (tx) => {
       const shipment = await tx.shipment.create({
         data: {
@@ -1390,18 +1476,40 @@ export async function addTrackingAction(formData: FormData) {
           status: "LABEL_CREATED",
         },
       });
+      if (shipped)
+        await tx.order.update({
+          where: { id: orderId },
+          data: {
+            status: "SHIPPED",
+            statusHistory: {
+              create: {
+                oldStatus: order.status,
+                newStatus: "SHIPPED",
+                actorId: session.user.id,
+                reason: `Shipment recorded · ${provider} ${trackingNumber}`,
+              },
+            },
+          },
+        });
       await tx.auditLog.create({
         data: {
           actorId: session.user.id,
           action: "SHIPMENT_TRACKING_ADDED",
           entityType: "Shipment",
           entityId: shipment.id,
-          after: { provider, trackingNumber },
+          before: { status: order.status },
+          after: {
+            provider,
+            trackingNumber,
+            status: shipped ? "SHIPPED" : order.status,
+          },
           ...meta,
         },
       });
     });
-    revalidatePath(`/admin/orders/${orderId}`);
+    if (shipped)
+      await sendOrderStatusEmail(orderId, "SHIPPED", { includeTracking: true });
+    await revalidateOrder(orderId);
     return { success: true as const };
   } catch (error) {
     return actionError(error);
@@ -1423,76 +1531,35 @@ export async function refundOrderAction(formData: FormData) {
       .min(3)
       .max(500)
       .parse(formData.get("reason"));
-    const payment = await db.payment.findFirst({
-      where: {
-        orderId,
-        status: { in: ["PAID", "PARTIALLY_REFUNDED"] },
-        providerPaymentId: { not: null },
-      },
-      include: { refunds: true },
-    });
-    if (!payment?.providerPaymentId)
-      throw new Error("REFUNDABLE_PAYMENT_NOT_FOUND");
-    const refunded = payment.refunds.reduce(
-      (sum, item) => sum + item.amountCents,
-      0,
-    );
-    validateRefund(amountCents, payment.amountCents, refunded);
-    const stripeRefund = await getStripe().refunds.create(
-      {
-        payment_intent: payment.providerPaymentId,
-        amount: amountCents,
-        metadata: { orderId, actorId: session.user.id },
-      },
-      {
-        idempotencyKey: `admin-refund-${payment.id}-${refunded}-${amountCents}`,
-      },
-    );
-    const full = refunded + amountCents === payment.amountCents;
     const meta = await requestMeta();
-    await db.$transaction(async (tx) => {
-      await tx.refund.create({
-        data: {
-          paymentId: payment.id,
-          providerRefundId: stripeRefund.id,
+
+    // The service locks the payment row, revalidates the refundable amount
+    // inside that lock, calls Stripe, then records the refund — so two
+    // administrators refunding at once cannot both pass validation.
+    const result = await issueRefund({
+      orderId,
+      amountCents,
+      reason,
+      actorId: session.user.id,
+    });
+
+    await db.auditLog.create({
+      data: {
+        actorId: session.user.id,
+        action: result.full ? "FULL_REFUND_CREATED" : "PARTIAL_REFUND_CREATED",
+        entityType: "Order",
+        entityId: orderId,
+        after: {
           amountCents,
+          stripeRefundId: result.stripeRefundId,
+          totalRefunded: result.refunded,
           reason,
         },
-      });
-      await tx.payment.update({
-        where: { id: payment.id },
-        data: { status: full ? "REFUNDED" : "PARTIALLY_REFUNDED" },
-      });
-      const order = await tx.order.findUniqueOrThrow({
-        where: { id: orderId },
-      });
-      await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status: full ? "REFUNDED" : "PARTIALLY_REFUNDED",
-          paymentStatus: full ? "REFUNDED" : "PARTIALLY_REFUNDED",
-          statusHistory: {
-            create: {
-              oldStatus: order.status,
-              newStatus: full ? "REFUNDED" : "PARTIALLY_REFUNDED",
-              actorId: session.user.id,
-              reason,
-            },
-          },
-        },
-      });
-      await tx.auditLog.create({
-        data: {
-          actorId: session.user.id,
-          action: full ? "FULL_REFUND_CREATED" : "PARTIAL_REFUND_CREATED",
-          entityType: "Order",
-          entityId: orderId,
-          after: { amountCents, stripeRefundId: stripeRefund.id, reason },
-          ...meta,
-        },
-      });
+        ...meta,
+      },
     });
-    revalidatePath(`/admin/orders/${orderId}`);
+    await sendOrderStatusEmail(orderId, "REFUNDED");
+    await revalidateOrder(orderId);
     return { success: true as const };
   } catch (error) {
     return actionError(error);

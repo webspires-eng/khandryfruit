@@ -1,5 +1,5 @@
 import { db } from "@/lib/db/client";
-import { env } from "@/lib/env";
+import { env, stripeWebhookReady } from "@/lib/env";
 import { requireAdmin } from "@/server/policies/authorization";
 import { getLaunchReadiness } from "@/server/services/launch-readiness";
 
@@ -32,8 +32,12 @@ export default async function SystemHealthPage() {
       Boolean(env.STRIPE_SECRET_KEY),
       "COMMERCE_BLOCKER",
     ],
-    ["Stripe webhook", Boolean(env.STRIPE_WEBHOOK_SECRET), "COMMERCE_BLOCKER"],
-    ["Email provider", Boolean(env.AWS_SES_FROM_EMAIL), "COMMERCE_BLOCKER"],
+    ["Stripe webhook", stripeWebhookReady(), "COMMERCE_BLOCKER"],
+    [
+      "Email provider (SMTP)",
+      Boolean(env.SMTP_HOST && env.SMTP_FROM_EMAIL),
+      "COMMERCE_BLOCKER",
+    ],
     [
       "ADMIN_EMAIL",
       Boolean(env.ADMIN_EMAIL && env.ADMIN_EMAIL !== "orders@example.com"),

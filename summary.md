@@ -49,7 +49,7 @@ Production migrations have not been applied. Only the local development database
 - Supabase production runtime and migration credentials.
 - Least-privilege database roles, backups and PITR evidence.
 - Stripe live keys, webhook and payment/refund verification.
-- AWS SES, Cloudflare R2 bucket/token/public-domain configuration and malware-scanner configuration.
+- SMTP credentials, Cloudflare R2 bucket/token/public-domain configuration and malware-scanner configuration.
 - Upstash Redis production credentials.
 - Sentry, domain, DNS and email DNS verification.
 - Approved business identity, VAT, legal, shipping, LUCID and food-registration information.

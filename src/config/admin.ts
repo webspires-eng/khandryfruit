@@ -73,6 +73,21 @@ const permissions: Record<AppRole, ReadonlySet<AdminArea>> = {
 export function isAppRole(value: string): value is AppRole {
   return value in permissions;
 }
+
+/**
+ * Roles that must hold a second factor in production.
+ *
+ * Derived from the permission matrix rather than listed by hand: any role that
+ * can reach more than the dashboard can change customer, order or catalogue
+ * data, so it needs the same protection. Previously only ADMIN and SUPER_ADMIN
+ * were gated, which left ORDER_MANAGER — the role that issues refunds — as the
+ * one role able to move money with a password alone.
+ */
+export function requiresTwoFactor(role: string) {
+  if (!isAppRole(role)) return false;
+  const areas = permissions[role];
+  return [...areas].some((area) => area !== "dashboard");
+}
 export function canAccessAdmin(role: string, area: AdminArea) {
   return isAppRole(role) && permissions[role].has(area);
 }

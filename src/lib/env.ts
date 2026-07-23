@@ -28,7 +28,13 @@ const schema = z.object({
   CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.string().optional(),
   CLOUDFLARE_R2_BUCKET: z.string().optional(),
   NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL: optionalUrl,
-  AWS_SES_FROM_EMAIL: z.string().email().optional().or(z.literal("")),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_FROM_EMAIL: z.string().email().optional().or(z.literal("")),
+  SMTP_FROM_NAME: z.string().optional(),
+  SMTP_REPLY_TO: z.string().email().optional().or(z.literal("")),
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
   NEXT_PUBLIC_DEFAULT_LOCALE: z.enum(["de", "en"]).default("de"),
   ADMIN_EMAIL: z.string().email().default("orders@example.com"),
@@ -73,6 +79,32 @@ export type ProductionEnvironmentIssue = {
   reason: string;
 };
 
+/**
+ * Values copied from `.env.example` and never replaced.
+ *
+ * A truthiness check treats these as configured, which is how a webhook secret
+ * of "whsec_replace_me" passed every readiness check while Stripe deliveries
+ * were being rejected for a bad signature.
+ */
+const PLACEHOLDER = /replace[_-]?me|change[_-]?me|your[_-]|example\.com|xxxx/i;
+
+export function isPlaceholderValue(value?: string | null): boolean {
+  return !value || PLACEHOLDER.test(value);
+}
+
+/**
+ * Whether the Stripe webhook can actually be verified.
+ *
+ * Nothing marks an order paid except a signature-verified webhook, so a secret
+ * that is absent, a placeholder, or too short to be real means payments will
+ * never confirm themselves. Real secrets are `whsec_` plus 32 characters.
+ */
+export function stripeWebhookReady(source: typeof env = env): boolean {
+  const secret = source.STRIPE_WEBHOOK_SECRET;
+  if (isPlaceholderValue(secret)) return false;
+  return secret!.startsWith("whsec_") && secret!.length >= 24;
+}
+
 function hasSsl(url: string | undefined) {
   if (!url) return false;
   try {
@@ -100,16 +132,13 @@ export function productionEnvironmentIssues(
     ],
     ["STRIPE_WEBHOOK_SECRET", source.STRIPE_WEBHOOK_SECRET],
     ["ADMIN_EMAIL", source.ADMIN_EMAIL],
-    ["AWS_REGION", source.AWS_REGION],
-    ["AWS_ACCESS_KEY_ID", source.AWS_ACCESS_KEY_ID],
-    ["AWS_SECRET_ACCESS_KEY", source.AWS_SECRET_ACCESS_KEY],
-    ["AWS_SES_FROM_EMAIL", source.AWS_SES_FROM_EMAIL],
+    ["SMTP_HOST", source.SMTP_HOST],
+    ["SMTP_USER", source.SMTP_USER],
+    ["SMTP_PASSWORD", source.SMTP_PASSWORD],
+    ["SMTP_FROM_EMAIL", source.SMTP_FROM_EMAIL],
     ["CLOUDFLARE_R2_ACCOUNT_ID", source.CLOUDFLARE_R2_ACCOUNT_ID],
     ["CLOUDFLARE_R2_ACCESS_KEY_ID", source.CLOUDFLARE_R2_ACCESS_KEY_ID],
-    [
-      "CLOUDFLARE_R2_SECRET_ACCESS_KEY",
-      source.CLOUDFLARE_R2_SECRET_ACCESS_KEY,
-    ],
+    ["CLOUDFLARE_R2_SECRET_ACCESS_KEY", source.CLOUDFLARE_R2_SECRET_ACCESS_KEY],
     ["CLOUDFLARE_R2_BUCKET", source.CLOUDFLARE_R2_BUCKET],
     [
       "NEXT_PUBLIC_CLOUDFLARE_R2_PUBLIC_URL",
@@ -159,10 +188,16 @@ export function productionEnvironmentIssues(
       key: "ADMIN_EMAIL",
       reason: "placeholder addresses are forbidden",
     });
-  if (source.AWS_SES_FROM_EMAIL?.endsWith("@example.com"))
+  if (source.SMTP_FROM_EMAIL?.endsWith("@example.com"))
     issues.push({
-      key: "AWS_SES_FROM_EMAIL",
+      key: "SMTP_FROM_EMAIL",
       reason: "placeholder addresses are forbidden",
+    });
+  // Without a verifiable webhook, no order can ever be marked paid.
+  if (source.STRIPE_WEBHOOK_SECRET && !stripeWebhookReady(source))
+    issues.push({
+      key: "STRIPE_WEBHOOK_SECRET",
+      reason: "looks like a placeholder — Stripe signatures cannot be verified",
     });
   return issues;
 }

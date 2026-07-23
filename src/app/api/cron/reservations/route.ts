@@ -54,12 +54,8 @@ export async function POST(request: Request) {
           },
         });
         await tx.order.updateMany({
-          where: { id: reservation.orderId, paymentStatus: "PENDING" },
-          data: {
-            status: "CANCELLED",
-            paymentStatus: "CANCELLED",
-            cancelledAt: new Date(),
-          },
+          where: { id: reservation.orderId, paymentStatus: "UNPAID" },
+          data: { status: "CANCELLED", cancelledAt: new Date() },
         });
         released += 1;
       });

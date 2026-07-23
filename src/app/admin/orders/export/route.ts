@@ -1,3 +1,4 @@
+import { orderCustomerName } from "@/lib/commerce/address";
 import { db } from "@/lib/db/client";
 import { requireAdmin } from "@/server/policies/authorization";
 
@@ -17,22 +18,37 @@ export async function GET() {
       "Order",
       "Customer",
       "Email",
+      "Phone",
       "Created",
       "Payment",
       "Status",
+      "Company",
+      "Address line 1",
+      "Address line 2",
+      "Postcode",
+      "City",
       "Country",
       "Total cents",
     ],
-    ...orders.map((o) => [
-      o.number,
-      o.user?.name ?? "Guest",
-      o.email,
-      o.createdAt.toISOString(),
-      o.paymentStatus,
-      o.status,
-      o.addresses[0]?.countryCode ?? "",
-      o.totalCents,
-    ]),
+    ...orders.map((o) => {
+      const shipping = o.addresses[0];
+      return [
+        o.number,
+        orderCustomerName(o),
+        o.email,
+        shipping?.phone ?? "",
+        o.createdAt.toISOString(),
+        o.paymentStatus,
+        o.status,
+        shipping?.company ?? "",
+        shipping?.line1 ?? "",
+        shipping?.line2 ?? "",
+        shipping?.postalCode ?? "",
+        shipping?.city ?? "",
+        shipping?.countryCode ?? "",
+        o.totalCents,
+      ];
+    }),
   ];
   return new Response(rows.map((row) => row.map(csv).join(",")).join("\n"), {
     headers: {

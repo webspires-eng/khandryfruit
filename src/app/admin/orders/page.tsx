@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Download, Search } from "lucide-react";
 import { db } from "@/lib/db/client";
+import { formatOrderNumber, orderCustomerName } from "@/lib/commerce/address";
+import {
+  ORDER_STATUSES,
+  ORDER_STATUS_LABELS,
+  PAYMENT_STATUS_LABELS,
+  type DomainPaymentStatus,
+} from "@/lib/commerce/order-state";
 import { formatMoney } from "@/lib/commerce/money";
 import { requireAdmin } from "@/server/policies/authorization";
 
@@ -23,6 +30,26 @@ export default async function OrdersPage({
             { number: { contains: q, mode: "insensitive" as const } },
             { email: { contains: q, mode: "insensitive" as const } },
             { user: { name: { contains: q, mode: "insensitive" as const } } },
+            // Guest orders carry the buyer's name only on the shipping address.
+            {
+              addresses: {
+                some: {
+                  OR: [
+                    {
+                      firstName: {
+                        contains: q,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    { lastName: { contains: q, mode: "insensitive" as const } },
+                    { city: { contains: q, mode: "insensitive" as const } },
+                    {
+                      postalCode: { contains: q, mode: "insensitive" as const },
+                    },
+                  ],
+                },
+              },
+            },
           ],
         }
       : {}),
@@ -60,30 +87,24 @@ export default async function OrdersPage({
           <input
             name="q"
             defaultValue={q}
-            placeholder="Order, customer or email"
+            placeholder="Order, customer, email, city or postcode"
           />
         </label>
         <select name="status" defaultValue={status}>
           <option value="">All fulfilment states</option>
-          {[
-            "PENDING_PAYMENT",
-            "PAID",
-            "PROCESSING",
-            "PACKED",
-            "SHIPPED",
-            "DELIVERED",
-            "CANCELLED",
-            "REFUNDED",
-            "PARTIALLY_REFUNDED",
-          ].map((item) => (
-            <option key={item}>{item}</option>
+          {ORDER_STATUSES.map((item) => (
+            <option key={item} value={item}>
+              {ORDER_STATUS_LABELS[item]}
+            </option>
           ))}
         </select>
         <select name="payment" defaultValue={payment}>
           <option value="">All payment states</option>
-          {["PENDING", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED"].map(
+          {(Object.keys(PAYMENT_STATUS_LABELS) as DomainPaymentStatus[]).map(
             (item) => (
-              <option key={item}>{item}</option>
+              <option key={item} value={item}>
+                {PAYMENT_STATUS_LABELS[item]}
+              </option>
             ),
           )}
         </select>
@@ -98,7 +119,7 @@ export default async function OrdersPage({
               <th>Date</th>
               <th>Payment</th>
               <th>Fulfilment</th>
-              <th>Country</th>
+              <th>Ship to</th>
               <th>Total</th>
               <th></th>
             </tr>
@@ -107,10 +128,10 @@ export default async function OrdersPage({
             {orders.map((order) => (
               <tr key={order.id}>
                 <td>
-                  <strong>{order.number}</strong>
+                  <strong>{formatOrderNumber(order.number)}</strong>
                 </td>
                 <td>
-                  {order.user?.name ?? "Guest"}
+                  {orderCustomerName(order)}
                   <small>{order.email}</small>
                 </td>
                 <td>{order.createdAt.toLocaleDateString("en-DE")}</td>
@@ -120,12 +141,21 @@ export default async function OrdersPage({
                 <td>
                   <span className="admin-status">{order.status}</span>
                 </td>
-                <td>{order.addresses[0]?.countryCode ?? "-"}</td>
+                <td>
+                  {order.addresses[0] ? (
+                    <>
+                      {order.addresses[0].postalCode} {order.addresses[0].city}
+                      <small>{order.addresses[0].countryCode}</small>
+                    </>
+                  ) : (
+                    "-"
+                  )}
+                </td>
                 <td>{formatMoney(order.totalCents, "en", order.currency)}</td>
                 <td>
                   <Link
                     className="table-action"
-                    href={`/admin/orders/${order.id}`}
+                    href={`/admin/orders/${order.number}`}
                   >
                     View
                   </Link>

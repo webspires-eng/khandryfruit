@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { contactSchema, wholesaleApplicationSchema } from "./schemas";
+import {
+  checkoutSchema,
+  contactSchema,
+  wholesaleApplicationSchema,
+} from "./schemas";
 
 const validWholesale = {
   locale: "de",
@@ -68,9 +72,9 @@ describe("wholesale application validation", () => {
     });
     expect(result.success).toBe(false);
     if (!result.success)
-      expect(result.error.issues.some((issue) => issue.path[0] === "vatId")).toBe(
-        true,
-      );
+      expect(
+        result.error.issues.some((issue) => issue.path[0] === "vatId"),
+      ).toBe(true);
   });
 
   it("rejects unknown business types", () => {
@@ -80,6 +84,79 @@ describe("wholesale application validation", () => {
         businessType: "SPACE_AGENCY",
       }),
     ).toThrow();
+  });
+});
+
+const validCheckout = {
+  locale: "de",
+  email: "kundin@example.com",
+  countryCode: "DE",
+  shippingAddress: {
+    firstName: "Alex",
+    lastName: "Beispiel",
+    company: "",
+    line1: "Musterstraße 12",
+    line2: "",
+    postalCode: "47051",
+    city: "Duisburg",
+    phone: "+4917612345678",
+  },
+  shippingMethodId: "de-standard",
+  legalAccepted: true,
+  lines: [{ variantId: "variant_1", quantity: 2 }],
+  giftBoxes: [],
+};
+
+describe("checkout validation", () => {
+  it("accepts a complete checkout with a delivery address", () => {
+    const parsed = checkoutSchema.parse(validCheckout);
+    expect(parsed.shippingAddress.city).toBe("Duisburg");
+  });
+
+  it("allows an omitted phone number", () => {
+    const parsed = checkoutSchema.parse({
+      ...validCheckout,
+      shippingAddress: { ...validCheckout.shippingAddress, phone: "" },
+    });
+    expect(parsed.shippingAddress.phone).toBe("");
+  });
+
+  it("requires a five-digit German postcode", () => {
+    for (const postalCode of ["", "470", "4705a", "470512"])
+      expect(
+        checkoutSchema.safeParse({
+          ...validCheckout,
+          shippingAddress: { ...validCheckout.shippingAddress, postalCode },
+        }).success,
+      ).toBe(false);
+  });
+
+  it("requires a recipient name and street", () => {
+    expect(
+      checkoutSchema.safeParse({
+        ...validCheckout,
+        shippingAddress: { ...validCheckout.shippingAddress, lastName: "" },
+      }).success,
+    ).toBe(false);
+    expect(
+      checkoutSchema.safeParse({
+        ...validCheckout,
+        shippingAddress: { ...validCheckout.shippingAddress, line1: "" },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a checkout without any address at all", () => {
+    expect(
+      checkoutSchema.safeParse({ ...validCheckout, shippingAddress: undefined })
+        .success,
+    ).toBe(false);
+  });
+
+  it("still rejects an empty cart", () => {
+    expect(
+      checkoutSchema.safeParse({ ...validCheckout, lines: [] }).success,
+    ).toBe(false);
   });
 });
 

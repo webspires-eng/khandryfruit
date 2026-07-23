@@ -239,27 +239,50 @@ export async function createFixedGiftBoxConfiguration(input: {
   slug: string;
   giftMessage?: string;
   occasion?: string;
+  packagingOptionId?: string;
 }): Promise<GiftBoxCartLine> {
   const fallback = giftBoxFallbackActive();
-  const box = await getGiftBoxBySlug(input.locale, input.slug);
+  const [box, packagingOptions] = await Promise.all([
+    getGiftBoxBySlug(input.locale, input.slug),
+    getPackagingOptions(input.locale),
+  ]);
   if (!box || (env.NODE_ENV === "production" && box.status !== "ACTIVE"))
     throw new GiftBoxValidationError("TEMPLATE_UNAVAILABLE");
+  // Curated boxes take the same packaging choice as the builder. An id that is
+  // not on the live list resolves to an inactive stub, so pricing rejects it
+  // rather than silently charging nothing for it.
+  const packaging = input.packagingOptionId
+    ? (packagingOptions.find(
+        (entry) => entry.id === input.packagingOptionId,
+      ) ?? {
+        id: input.packagingOptionId,
+        name: "",
+        priceCents: 0,
+        active: false,
+      })
+    : null;
+  // The fixed path skips the builder's capacity validation, which is also where
+  // packaging availability is asserted — check it here, or a forged id would be
+  // accepted and priced at zero.
+  if (packaging && !packaging.active)
+    throw new GiftBoxValidationError("PACKAGING_UNAVAILABLE");
   if (input.giftMessage && input.giftMessage.length > 240)
     throw new GiftBoxValidationError("MESSAGE_TOO_LONG", { max: 240 });
 
   // Development fallback: the catalogue price is server-derived; no
   // configuration row is written (checkout is disabled in this mode too).
   if (fallback) {
-    if (!box.available) throw new GiftBoxValidationError("TEMPLATE_UNAVAILABLE");
+    if (!box.available)
+      throw new GiftBoxValidationError("TEMPLATE_UNAVAILABLE");
     return {
       configurationId: `dev-${crypto.randomUUID()}`,
       giftBoxId: box.id,
       name: box.name,
       sizeName: box.sizeName,
-      packagingName: null,
+      packagingName: packaging?.name || null,
       giftMessage: input.giftMessage || null,
       occasion: input.occasion ?? null,
-      totalCents: box.priceCents,
+      totalCents: box.priceCents + (packaging?.priceCents ?? 0),
       quantity: 1,
       items: box.items.map((item) => ({
         name: item.productName,
@@ -306,7 +329,7 @@ export async function createFixedGiftBoxConfiguration(input: {
     },
     selections,
     variants,
-    packaging: null,
+    packaging,
   });
 
   const configuration = await db.giftBoxConfiguration.create({
@@ -316,9 +339,10 @@ export async function createFixedGiftBoxConfiguration(input: {
       capacityUnits: 99,
       giftMessage: input.giftMessage || null,
       occasion: input.occasion ?? null,
+      packagingOptionId: packaging?.active ? packaging.id : null,
       itemsTotalCents: pricing.itemsTotalCents,
       boxChargeCents: pricing.boxChargeCents,
-      packagingCents: 0,
+      packagingCents: pricing.packagingCents,
       totalCents: pricing.totalCents,
       status: "IN_CART",
       expiresAt: new Date(
@@ -341,7 +365,7 @@ export async function createFixedGiftBoxConfiguration(input: {
     giftBoxId: box.id,
     name: box.name,
     sizeName: box.sizeName,
-    packagingName: null,
+    packagingName: packaging?.name || null,
     giftMessage: input.giftMessage || null,
     occasion: input.occasion ?? null,
     totalCents: pricing.totalCents,

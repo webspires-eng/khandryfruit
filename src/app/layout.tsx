@@ -24,7 +24,7 @@ export default async function RootLayout({
     requestLocale && isLocale(requestLocale) ? requestLocale : defaultLocale;
   return (
     <html lang={locale} className={poppins.variable} suppressHydrationWarning>
-      <body>{children}</body>
+      <body cz-shortcut-listen="true">{children}</body>
     </html>
   );
 }

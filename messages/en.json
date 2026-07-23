@@ -326,7 +326,9 @@
       "adding": "Adding…",
       "outOfStock": "Currently unavailable",
       "backToCatalogue": "All gift boxes",
-      "priceNote": "Price incl. VAT where applicable, plus shipping."
+      "priceNote": "Price incl. VAT where applicable, plus shipping.",
+      "customise": "Customise this box",
+      "customiseHint": "Opens the builder with these products already selected — swap items, change the size or add more."
     },
     "empty": {
       "title": "No gift boxes available yet",
@@ -521,6 +523,55 @@
       "subject": "New contact enquiry: {subject}",
       "intro": "A new contact enquiry has been submitted.",
       "action": "Details are available in the admin area."
+    },
+    "orderStatus": {
+      "subject": "Order {order}: {status}",
+      "greeting": "Hello {name},",
+      "statusLabel": {
+        "CONFIRMED": "payment confirmed",
+        "PROCESSING": "in preparation",
+        "SHIPPED": "on its way",
+        "DELIVERED": "delivered",
+        "COMPLETED": "completed",
+        "CANCELLED": "cancelled",
+        "REFUNDED": "refunded"
+      },
+      "intro": {
+        "CONFIRMED": "we have received your payment for order {order}. We will start preparing your parcel shortly.",
+        "PROCESSING": "we are now preparing order {order} in our Duisburg storeroom.",
+        "SHIPPED": "order {order} has been handed to the carrier and is on its way.",
+        "DELIVERED": "order {order} has been marked as delivered. We hope you enjoy your dry fruits.",
+        "COMPLETED": "order {order} is now complete and the return window has closed. Thank you for shopping with us.",
+        "CANCELLED": "order {order} has been cancelled. Any reserved stock has been released, and an authorised payment will be returned to your original payment method.",
+        "REFUNDED": "a refund has been issued for order {order}. Depending on your bank the amount may take a few working days to appear."
+      },
+      "total": "Order total: {total}",
+      "tracking": "Carrier: {provider} · Tracking number: {number}",
+      "trackingUrl": "Track your parcel: {url}",
+      "outro": "If anything looks wrong, simply reply to this email and we will sort it out.",
+      "signature": "Kind regards, Khan Dry Fruit, Duisburg"
+    },
+    "order": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "shipping": "Shipping",
+      "tax": "VAT included",
+      "total": "Total",
+      "deliveryTo": "Delivery address",
+      "receipt": {
+        "subject": "Your Khan Dry Fruit order {order}",
+        "greeting": "Hello {name},",
+        "intro": "thank you for your order. We have received your payment and your order {order} is confirmed. Here is what you bought:",
+        "track": "You can follow your order here: {url}",
+        "outro": "We will email you again as soon as your parcel is on its way. If anything looks wrong, simply reply to this email.",
+        "signature": "Kind regards, Khan Dry Fruit, Duisburg"
+      },
+      "admin": {
+        "subject": "New order {order} — {total}",
+        "intro": "A new order {order} has been paid, totalling {total}.",
+        "action": "Open it in the admin area: {url}"
+      },
+      "shippingFree": "Free"
     }
   }
 }

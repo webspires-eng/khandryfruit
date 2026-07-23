@@ -14,20 +14,26 @@ enum ProductStatus {
   SCHEDULED
 }
 
+/// Where the goods are. Money never appears here — that is OrderPaymentStatus.
 enum OrderStatus {
-  PENDING_PAYMENT
-  PAYMENT_FAILED
-  PAID
+  PENDING
+  CONFIRMED
   PROCESSING
-  PACKED
   SHIPPED
   DELIVERED
-  RETURN_REQUESTED
+  COMPLETED
   CANCELLED
-  REFUNDED
-  PARTIALLY_REFUNDED
 }
 
+/// Whether the customer's money has arrived, at the granularity the shop shows.
+/// Gateway detail (authorisation, failure, partial capture) lives on Payment.
+enum OrderPaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+/// Gateway-level state of a single payment attempt.
 enum PaymentStatus {
   PENDING
   PROCESSING
@@ -621,13 +627,15 @@ model WishlistItem {
 
 model Order {
   id                   String               @id @default(cuid())
-  number               String               @unique
+  /// Short sequential customer-facing number ("0001"), assigned by Postgres so
+  /// concurrent checkouts cannot collide. Displayed as #0001.
+  number               String               @unique @default(dbgenerated("lpad(nextval('order_number_seq')::text, 4, '0')"))
   userId               String?
   email                String
   locale               Locale               @default(de)
   currency             String               @default("EUR")
-  status               OrderStatus          @default(PENDING_PAYMENT)
-  paymentStatus        PaymentStatus        @default(PENDING)
+  status               OrderStatus          @default(PENDING)
+  paymentStatus        OrderPaymentStatus   @default(UNPAID)
   subtotalCents        Int
   discountCents        Int                  @default(0)
   shippingCents        Int
@@ -640,6 +648,9 @@ model Order {
   accessTokenExpiresAt DateTime?
   reservationExpiresAt DateTime?
   paidAt               DateTime?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
+  completedAt          DateTime?
   cancelledAt          DateTime?
   internalNote         String?
   customerNote         String?

@@ -16,7 +16,7 @@ Generated from the local environment on 2026-07-16. This is a preparation report
 
 The local environment is rejected for production because Stripe live keys/webhook, AWS credentials/sender/bucket, Sentry, public analytics ID and Google verification are missing; database URLs do not declare production SSL; site/auth URLs are HTTP; and `ADMIN_EMAIL` is a placeholder.
 
-Supabase production connectivity, production migration deployment, live Stripe webhook delivery, live payment/refunds, SES delivery, DNS verification, Vercel deployment, Sentry ingestion, and backup/PITR availability have not been verified because the corresponding external systems are not configured.
+Supabase production connectivity, production migration deployment, live Stripe webhook delivery, live payment/refunds, SMTP delivery, DNS verification, Vercel deployment, Sentry ingestion, and backup/PITR availability have not been verified because the corresponding external systems are not configured.
 
 ## Dependency audit
 
@@ -46,7 +46,7 @@ The isolated build output was approximately 62 MB, with approximately 1.1 MB of 
 - Approved Impressum, privacy, terms, withdrawal, returns and shipping content.
 - Approved shipping zones/rates.
 - At least one fully verified product with food labelling and claims evidence.
-- Production domain/DNS owner, recovery owner, RPO/RTO, Supabase plan/backup retention, SES domain owner, Stripe account owner and Sentry organisation.
+- Production domain/DNS owner, recovery owner, RPO/RTO, Supabase plan/backup retention, SMTP sending-domain owner, Stripe account owner and Sentry organisation.
 
 ## Launch decision
 

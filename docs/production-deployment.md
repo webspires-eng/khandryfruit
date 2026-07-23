@@ -1,6 +1,6 @@
 # Production deployment runbook
 
-This runbook prepares a controlled Vercel and Supabase launch. It does not certify legal compliance, DNS ownership, Stripe activation, SES production access, or backup availability. The business owner must confirm those items.
+This runbook prepares a controlled Vercel and Supabase launch. It does not certify legal compliance, DNS ownership, Stripe activation, SMTP sending reputation, or backup availability. The business owner must confirm those items.
 
 ## Environments and secrets
 
@@ -37,7 +37,7 @@ Use separate PostgreSQL roles. `DATABASE_URL` must use a pooled runtime role wit
 
 ## Vercel and domain
 
-1. Deploy Preview with test Stripe keys, an isolated database, and restricted SES recipients.
+1. Deploy Preview with test Stripe keys, an isolated database, and restricted SMTP recipients.
 2. Manually verify the storefront, admin and checkout journeys against the Preview URL.
 3. Add the final domain, configure DNS, wait for a valid certificate, and verify HTTP redirects to HTTPS.
 4. Add Preview and Production origins to Better Auth trusted origins.
@@ -50,9 +50,11 @@ Create `https://YOUR_DOMAIN/api/stripe/webhook` and subscribe to the checkout co
 
 Record evidence for successful payment, failed payment, cancelled checkout, delayed and duplicate webhook delivery, expired checkout, partial refund, and full refund. Confirm standard and composite gift-box metadata contain internal order/line identifiers without customer secrets.
 
-## SES and DNS
+## SMTP and DNS
 
-Verify the sending domain and sender, publish SES DKIM and SPF records, and start DMARC with monitored reporting before enforcement. Request SES production access and verify the account is out of sandbox. Route bounce and complaint events through SNS/EventBridge to the operations owner.
+Verify the sending domain and sender with the SMTP provider, publish its DKIM and SPF records, and start DMARC with monitored reporting before enforcement. Confirm the account is off any trial/sandbox sending restriction and that its daily send quota covers expected order volume. Route bounce and complaint reporting to the operations owner using whatever mechanism the provider offers.
+
+Store `SMTP_PASSWORD` only in the protected Production environment. For Gmail or Google Workspace senders this must be an App Password issued against an account with 2-Step Verification enabled — never the account password — and it should be rotated independently of other credentials. Port 465 connects with implicit TLS; every other port is required to upgrade through STARTTLS and the connection fails rather than falling back to plaintext.
 
 Test wholesale confirmation/admin notification, contact acknowledgement/admin notification, order and payment confirmation, shipping notification, password reset, and email verification. The provider retries three times and emits structured delivery events. Persistent email-delivery records and automated bounce suppression require a future schema/provider integration and remain a blocker if operational logs are insufficient.
 
@@ -81,4 +83,4 @@ For application-only failures, use Vercel’s instant rollback to the previous a
 
 ## Final evidence
 
-Archive the deployment URL and commit, `db:status`, launch-readiness report, Stripe webhook delivery IDs, payment/refund evidence, SES message IDs, manual Preview verification notes, monitoring test event, backup/PITR confirmation, legal approval, shipping approval, and published-product approval.
+Archive the deployment URL and commit, `db:status`, launch-readiness report, Stripe webhook delivery IDs, payment/refund evidence, SMTP message IDs, manual Preview verification notes, monitoring test event, backup/PITR confirmation, legal approval, shipping approval, and published-product approval.

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { localizedHref } from "@/config/routes";
-import { isLocale } from "@/config/site";
+import { isLocale, type AppLocale } from "@/config/site";
 import {
   GiftBoxBuilder,
   type BuilderInitialState,
@@ -13,6 +13,7 @@ import { env } from "@/lib/env";
 import {
   getBuilderProducts,
   getBuilderTemplates,
+  getGiftBoxBySlug,
   getPackagingOptions,
 } from "@/server/repositories/gift-boxes";
 
@@ -34,6 +35,50 @@ export async function generateMetadata({
         en: localizedHref("giftBoxBuilder", "en"),
       },
     },
+  };
+}
+
+/**
+ * Pre-fills the builder from a curated box, so "customise this box" starts from
+ * its contents instead of an empty form.
+ *
+ * The curated box is a fixed template with its own size; the builder works in
+ * sizes the customer can change, so we pick the template that matches the
+ * curated size, falling back to the smallest one that can actually hold the
+ * contents. Returning null simply leaves the builder empty.
+ */
+async function loadStateFromGiftBox(
+  locale: AppLocale,
+  slug: string,
+): Promise<BuilderInitialState | null> {
+  const [box, templates] = await Promise.all([
+    getGiftBoxBySlug(locale, slug),
+    getBuilderTemplates(locale),
+  ]);
+  if (!box?.items.length || !templates.length) return null;
+
+  const unitsNeeded = box.items.reduce((sum, item) => sum + item.quantity, 0);
+  const bySize = templates.find(
+    (template) => template.sizeName === box.sizeName,
+  );
+  const template =
+    bySize && bySize.capacityUnits >= unitsNeeded
+      ? bySize
+      : [...templates]
+          .sort((a, b) => a.capacityUnits - b.capacityUnits)
+          .find((entry) => entry.capacityUnits >= unitsNeeded);
+  if (!template) return null;
+
+  return {
+    replaceConfigurationId: null,
+    giftBoxId: template.id,
+    packagingOptionId: null,
+    occasion: null,
+    giftMessage: "",
+    items: box.items.map((item) => ({
+      variantId: item.variantId,
+      quantity: item.quantity,
+    })),
   };
 }
 
@@ -68,19 +113,22 @@ export default async function BuildYourOwnPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ edit?: string }>;
+  searchParams: Promise<{ edit?: string; from?: string }>;
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   setRequestLocale(locale);
-  const { edit } = await searchParams;
-  const [t, templates, products, packaging, initial] = await Promise.all([
+  const { edit, from } = await searchParams;
+  const [t, templates, products, packaging, edited] = await Promise.all([
     getTranslations("giftBoxBuilder"),
     getBuilderTemplates(locale),
     getBuilderProducts(locale),
     getPackagingOptions(locale),
     loadInitialState(edit),
   ]);
+  // Editing an existing cart line wins over starting from a curated box.
+  const initial =
+    edited ?? (from ? await loadStateFromGiftBox(locale, from) : null);
 
   return (
     <div className="page-shell container">

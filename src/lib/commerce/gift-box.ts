@@ -91,7 +91,8 @@ export function validateGiftBoxSelection(input: {
   giftMessage?: string | null;
 }): void {
   const { template, selections, variants, packaging, giftMessage } = input;
-  if (!template.active) throw new GiftBoxValidationError("TEMPLATE_UNAVAILABLE");
+  if (!template.active)
+    throw new GiftBoxValidationError("TEMPLATE_UNAVAILABLE");
 
   const byVariant = new Map(variants.map((v) => [v.variantId, v]));
   let totalQuantity = 0;
@@ -162,10 +163,16 @@ export function calculateGiftBoxPricing(input: {
     };
   });
 
-  const itemsTotalCents = lines.reduce((sum, line) => sum + line.lineTotalCents, 0);
+  const itemsTotalCents = lines.reduce(
+    (sum, line) => sum + line.lineTotalCents,
+    0,
+  );
   const boxChargeCents = input.template.basePriceCents;
   const packagingCents = input.packaging?.priceCents ?? 0;
-  const chargesTax = includedTax(boxChargeCents + packagingCents, PACKAGING_VAT_RATE_BPS);
+  const chargesTax = includedTax(
+    boxChargeCents + packagingCents,
+    PACKAGING_VAT_RATE_BPS,
+  );
   return {
     lines,
     itemsTotalCents,
@@ -173,6 +180,52 @@ export function calculateGiftBoxPricing(input: {
     packagingCents,
     totalCents: itemsTotalCents + boxChargeCents + packagingCents,
     taxCents: lines.reduce((sum, line) => sum + line.taxCents, 0) + chargesTax,
-    weightGrams: lines.reduce((sum, line) => sum + line.weightGrams * line.quantity, 0),
+    weightGrams: lines.reduce(
+      (sum, line) => sum + line.weightGrams * line.quantity,
+      0,
+    ),
   };
+}
+
+/** A single product inside a gift box, as recorded on the order. */
+export type GiftBoxSnapshotItem = {
+  name: string;
+  quantity: number;
+  weightGrams: number;
+};
+
+/**
+ * Reads the contents recorded on an order's gift-box line.
+ *
+ * `OrderGiftBoxItem.snapshot` is `Json`, written at checkout so the order keeps
+ * what was actually bought even if the box is later re-curated. It is parsed
+ * defensively: a malformed or legacy snapshot yields an empty list rather than
+ * breaking the order page.
+ */
+export function readGiftBoxContents(snapshot: unknown): GiftBoxSnapshotItem[] {
+  if (typeof snapshot !== "object" || snapshot === null) return [];
+  const items = (snapshot as { items?: unknown }).items;
+  if (!Array.isArray(items)) return [];
+  return items.flatMap((entry) => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const { name, quantity, weightGrams } = entry as Record<string, unknown>;
+    if (typeof name !== "string" || !name) return [];
+    return [
+      {
+        name,
+        quantity: typeof quantity === "number" && quantity > 0 ? quantity : 1,
+        weightGrams: typeof weightGrams === "number" ? weightGrams : 0,
+      },
+    ];
+  });
+}
+
+/** "2× Black Raisins (500 g) · 1× Afghan Figs (500 g)" */
+export function formatGiftBoxContents(items: GiftBoxSnapshotItem[]) {
+  return items
+    .map(
+      (item) =>
+        `${item.quantity}× ${item.name}${item.weightGrams ? ` (${item.weightGrams} g)` : ""}`,
+    )
+    .join(" · ");
 }
